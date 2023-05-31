@@ -1,6 +1,6 @@
 #include "musicplayer.h"
 
-musicplayer::musicplayer(QWidget *parent):QWidget(parent)
-{
+musicplayer::musicplayer(QWidget *parent)
+    : QWidget(parent){
 
-}
+    }

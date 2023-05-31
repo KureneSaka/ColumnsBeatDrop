@@ -20,7 +20,7 @@ public:
     PlayWindow(QWidget *parent = nullptr);
     void start();
 private:
-    void paintEvent(QPaintEvent*);
+    void paintEvent(QPaintEvent *);
     void shapeChange(State_w _stt);
 //    void keyPressEvent(QKeyEvent *event);
 signals:

@@ -8,10 +8,10 @@ class PlayWindowWidget: public QWidget
 {
     Q_OBJECT;
 protected:
-    float showRatio=0;
-    void paintEvent(QPaintEvent*);
-    virtual void Paint()=0;
-    void drawEdge(int x,int y,int w,int h,int shadowWidth=6);
+    float showRatio = 0;
+    void paintEvent(QPaintEvent *);
+    virtual void Paint() = 0;
+    void drawEdge(int x, int y, int w, int h, int shadowWidth = 6);
 public:
     PlayWindowWidget(QWidget *parent = nullptr);
     void setRatio(float shapeRatio);
@@ -103,8 +103,5 @@ private:
 signals:
 public slots:
 };
-
-
-
 
 #endif // PLAYWINDOWWIDGETS_H

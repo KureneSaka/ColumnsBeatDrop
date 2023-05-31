@@ -23,14 +23,14 @@ int main(int argc, char *argv[])
         }
     }
     QScreen *currentScreen = QGuiApplication::primaryScreen();
-    int x = (currentScreen->size().width() - WINDOW_WIDTH)/2;
-    int y = (currentScreen->size().height() - WINDOW_HEIGHT)/2 - 40;
+    int x = (currentScreen->size().width() - WINDOW_WIDTH) / 2;
+    int y = (currentScreen->size().height() - WINDOW_HEIGHT) / 2 - 40;
     x = x > 0 ? x : 0;
     y = y > 0 ? y : 0;
     FrameTimer frametimer;
     ftimer = &frametimer;
     MainWindow w;
-    w.move(x,y);
+    w.move(x, y);
     w.show();
     a.exec();
     return 0;

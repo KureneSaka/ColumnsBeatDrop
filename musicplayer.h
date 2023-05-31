@@ -7,7 +7,7 @@ class musicplayer:public QWidget
 {
     Q_OBJECT
 public:
-    musicplayer(QWidget *parent=nullptr);
+    musicplayer(QWidget *parent = nullptr);
 };
 
 #endif // MUSICPLAYER_H

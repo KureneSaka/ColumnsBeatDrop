@@ -6,12 +6,6 @@
 #define MIDDLE_WIDTH    640
 #define MIDDLE_HEIGHT   480
 #define FPS 60
-enum State_w
-{
-    S_Expanding,
-    S_Normal,
-    S_Narrowing,
-    S_Hidden
-};
+enum State_w { S_Expanding, S_Normal, S_Narrowing, S_Hidden };
 
 #endif // PREDEFINES_H

@@ -13,13 +13,13 @@ class PlayMenu:public QMainWindow
     QFont ContentFont;
     long long frameTimeOffset = 0;
     State_w stt = S_Hidden;
-    int cursor=0;
+    int cursor = 0;
     QSoundEffect select;
     QSoundEffect confirm;
 public:
-    PlayMenu(QWidget *parent=nullptr);
+    PlayMenu(QWidget *parent = nullptr);
 private:
-    void paintEvent(QPaintEvent*);
+    void paintEvent(QPaintEvent *);
     void keyPressEvent(QKeyEvent *event);
     void shapeChange(State_w _stt);
 signals:

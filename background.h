@@ -10,8 +10,8 @@ class BackGround: public QWidget
     bool music_on = false;
     long long frameTimeOffset = 0;
 public:
-    BackGround(QWidget* parent=nullptr);
-    void paintEvent(QPaintEvent*);
+    BackGround(QWidget *parent = nullptr);
+    void paintEvent(QPaintEvent *);
 signals:
 public slots:
 };

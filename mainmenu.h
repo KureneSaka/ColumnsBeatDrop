@@ -29,7 +29,7 @@ class MainMenu : public QMainWindow
 public:
     MainMenu(QWidget *parent = nullptr);
 private:
-    void paintEvent(QPaintEvent*);
+    void paintEvent(QPaintEvent *);
     void keyPressEvent(QKeyEvent *event);
     void shapeChange(State_w _stt);
 signals:
