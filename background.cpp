@@ -3,7 +3,9 @@
 #include "frametimer.h"
 
 extern FrameTimer *ftimer;
-int bpm = 134;
+extern int bpm;
+bool music_on = false;
+extern long long frameTimeOffset;
 BackGround::BackGround(QWidget *parent)
     : QWidget(parent)
 {
@@ -14,7 +16,6 @@ BackGround::BackGround(QWidget *parent)
 void BackGround::paintEvent(QPaintEvent *)
 {
     long long frametime = ftimer->getCurrentTime();
-    int during = (frametime - frameTimeOffset) * bpm / FPS % 60;
 
     QPainter painter(this);
     painter.fillRect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, Qt::black);
@@ -53,6 +54,7 @@ void BackGround::paintEvent(QPaintEvent *)
         }
         QColor BrushColor = Qt::black;
         if (music_on) {
+            int during = ((frametime - frameTimeOffset) * bpm / FPS) % 60;
             if (i == during) {
                 BrushColor = PenColor;
             } else if ((i + 60 - during) % 60 == 1 || (during + 60 - i) % 60 == 1) {

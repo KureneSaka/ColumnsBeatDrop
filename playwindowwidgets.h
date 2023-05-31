@@ -33,7 +33,6 @@ class GrooveBar: public PlayWindowWidget
 {
     Q_OBJECT;
     QFont _Font;
-    int grooveLevel;
 public:
     GrooveBar(QWidget *parent = nullptr);
 private:
@@ -42,11 +41,12 @@ signals:
 public slots:
 };
 
-class RythmBar: public PlayWindowWidget
+class RhythmBar: public PlayWindowWidget
 {
     Q_OBJECT;
+    int rhythmLevel = 0;
 public:
-    RythmBar(QWidget *parent = nullptr);
+    RhythmBar(QWidget *parent = nullptr);
 private:
     void Paint();
 signals:

@@ -9,6 +9,22 @@ const int BoardWidth = BoardColumns * SquareWidth;
 const int BoardHeight = BoardLines * SquareWidth;
 const int BoardY = 80;
 const int BoardPenWidth = 4;
+extern int grooveLevel;
+extern long long frameTimeOffset;
+extern int bpm;
+
+QColor GrooveColor[10] = {QColor(240, 0, 0),
+                          QColor(240, 160, 0),
+                          QColor(240, 240, 0),
+                          QColor(160, 240, 0),
+                          QColor(0, 240, 0),
+                          QColor(0, 240, 160),
+                          QColor(0, 240, 200),
+                          QColor(0, 240, 240),
+                          QColor(0, 200, 240),
+                          QColor(0, 160, 240)};
+QString GrooveRatio[10]
+    = {"20.0X", "10.0X", "6.00X", "4.00X", "3.20X", "2.40X", "2.00X", "1.60X", "1.25X", "1.00X"};
 
 PlayWindowWidget::PlayWindowWidget(QWidget *parent)
     : QWidget(parent)
@@ -91,7 +107,7 @@ void PlayBoard::Paint()
 GrooveBar::GrooveBar(QWidget *parent)
     : PlayWindowWidget(parent)
 {
-    _Font = fontLoader("RationalInteger.ttf", 40);
+    _Font = fontLoader("STENCIL.TTF", 35);
 }
 void GrooveBar::Paint()
 {
@@ -99,16 +115,60 @@ void GrooveBar::Paint()
     int BoardX = (WINDOW_WIDTH - BoardWidth) / 2 - 30 - width;
     drawEdge(BoardX, BoardY, width, BoardHeight);
     QPainter printer(this);
+    printer.setPen(QPen(Qt::transparent));
+    printer.setBrush(QBrush(QColor(127, 127, 127, 127 * showRatio)));
+    for (int i = 0; i < 10 - grooveLevel; i++) {
+        printer.drawRect(BoardX + 5, BoardY + 14 + 78 * i, 10, 70);
+    }
+    for (int i = 10 - grooveLevel; i < 10; i++) {
+        printer.setBrush(QBrush(GrooveColor[i]));
+        printer.drawRect(BoardX + 5, BoardY + 14 + 78 * i, 10, 70);
+    }
+    if (grooveLevel) {
+        printer.setFont(_Font);
+        printer.setPen(QPen(QColor(0, 0, 0, 128)));
+        for (int i = -2; i <= 2; i += 2) {
+            for (int j = -2; j <= 2; j += 2) {
+                printer.drawText(BoardX - 40 + i,
+                                 BoardY + 800 - 78 * grooveLevel + j,
+                                 100,
+                                 58,
+                                 Qt::AlignCenter,
+                                 GrooveRatio[10 - grooveLevel]);
+            }
+        }
+        printer.setPen(QPen(GrooveColor[10 - grooveLevel]));
+        printer.drawText(BoardX - 40,
+                         BoardY + 800 - 78 * grooveLevel,
+                         100,
+                         58,
+                         Qt::AlignCenter,
+                         GrooveRatio[10 - grooveLevel]);
+    }
 }
 
-RythmBar::RythmBar(QWidget *parent)
+RhythmBar::RhythmBar(QWidget *parent)
     : PlayWindowWidget(parent)
 {}
-void RythmBar::Paint()
+void RhythmBar::Paint()
 {
     int width = 20;
     int BoardX = (WINDOW_WIDTH + BoardWidth) / 2 + 30;
     drawEdge(BoardX, BoardY, width, BoardHeight);
+    QPainter printer(this);
+    printer.setPen(QPen(Qt::transparent));
+    printer.setBrush(QBrush(QColor(127, 127, 127, 127 * showRatio)));
+    for (int i = 0; i < 20 - rhythmLevel; i++) {
+        printer.drawRect(BoardX + 5, BoardY + 14 + 39 * i, 10, 31);
+    }
+    for (int i = 20 - rhythmLevel; i < 20; i++) {
+        if (i < 10 - grooveLevel || i == 0) {
+            printer.setPen(QPen(QColor(240, 0, 0)));
+        } else {
+            printer.setPen(QPen(QColor(0, 0, 240)));
+        }
+        printer.drawRect(BoardX + 5, BoardY + 14 + 39 * i, 10, 31);
+    }
 }
 
 NextBlockBoard::NextBlockBoard(QWidget *parent)
@@ -122,6 +182,7 @@ void NextBlockBoard::Paint()
     int BoardX = (WINDOW_WIDTH + BoardWidth) / 2 + 80;
     int BoardY0 = BoardY;
     drawEdge(BoardX, BoardY0, width, 280);
+
 }
 
 ScoreBoard::ScoreBoard(QWidget *parent)

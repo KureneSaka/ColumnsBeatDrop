@@ -6,6 +6,7 @@
 #include <QTranslator>
 #include <QScreen>
 #include "frametimer.h"
+#include <QAudioOutput>
 
 FrameTimer *ftimer;
 

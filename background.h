@@ -7,8 +7,6 @@ class BackGround: public QWidget
 {
     Q_OBJECT;
     float angle;
-    bool music_on = false;
-    long long frameTimeOffset = 0;
 public:
     BackGround(QWidget *parent = nullptr);
     void paintEvent(QPaintEvent *);
