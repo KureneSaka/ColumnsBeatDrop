@@ -3,25 +3,27 @@
 
 extern FrameTimer *ftimer;
 
-PlayWindow::PlayWindow(QWidget *parent):QMainWindow(parent), pb(this)
+PlayWindow::PlayWindow(QWidget *parent):QMainWindow(parent),
+    pb(this),
+    gb(this),
+    rb(this),
+    nbb(this),
+    sb(this),
+    mb(this),
+    tb(this)
 {
-    setWindowModality(Qt::ApplicationModal);
-    setFocusPolicy(Qt::StrongFocus);
+    setWindowModality(Qt::NonModal);
+    setFocusPolicy(Qt::NoFocus);
     setWindowFlags(Qt::FramelessWindowHint);
     move(0,0);
     resize(WINDOW_WIDTH,WINDOW_HEIGHT);
-    connect(ftimer,&FrameTimer::frameRefresh,this,[=]()
-            {
-                if(stt==S_Expanding||stt==S_Narrowing)
-                    update();
-
-            });
     stt=S_Hidden;
-    pb.show();
 }
 
 void PlayWindow::paintEvent(QPaintEvent*)
 {
+    if(stt==S_Hidden)
+        return;
     long long frametime = ftimer->getCurrentTime();
     QPainter painter(this);
     float shapeRatio = 1;
@@ -52,6 +54,13 @@ void PlayWindow::paintEvent(QPaintEvent*)
         break;
     }
     pb.setRatio(shapeRatio);
+    gb.setRatio(shapeRatio);
+    rb.setRatio(shapeRatio);
+    nbb.setRatio(shapeRatio);
+    sb.setRatio(shapeRatio);
+    mb.setRatio(shapeRatio);
+    tb.setRatio(shapeRatio);
+
 }
 
 void PlayWindow::shapeChange(State_w _stt)

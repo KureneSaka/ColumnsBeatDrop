@@ -28,6 +28,8 @@ PlayMenu::PlayMenu(QWidget *parent):QMainWindow(parent),select(this),confirm(thi
 
 void PlayMenu::paintEvent(QPaintEvent*)
 {
+    if(stt==S_Hidden)
+        return;
     long long frametime = ftimer->getCurrentTime();
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing,true);

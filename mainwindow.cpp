@@ -21,7 +21,6 @@ MainWindow::MainWindow(QWidget *parent)
     pw->show();
     mm = new MainMenu(this);
     mm->show();
-    mm->setFocus();
     connect(ftimer,&FrameTimer::frameRefresh,this,[=](){update();});
     connect(mm,&MainMenu::ExitGame,this,[=](){this->close();});
     connect(mm,&MainMenu::StartGame,this,[=]()
@@ -33,6 +32,7 @@ MainWindow::MainWindow(QWidget *parent)
             pw->start();
         });
     });
+    mm->setFocus();
 
 }
 

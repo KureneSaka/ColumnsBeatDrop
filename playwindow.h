@@ -10,11 +10,15 @@ class PlayWindow:public QMainWindow
     State_w stt;
     long long frameTimeOffset;
     PlayBoard pb;
-    float shapeRatio = 0;
+    GrooveBar gb;
+    RythmBar rb;
+    NextBlockBoard nbb;
+    ScoreBoard sb;
+    MusicBoard mb;
+    TimeBoard tb;
 public:
     PlayWindow(QWidget *parent = nullptr);
     void start();
-    float getShapeRatio();
 private:
     void paintEvent(QPaintEvent*);
     void shapeChange(State_w _stt);
