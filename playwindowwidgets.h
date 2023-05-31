@@ -44,9 +44,11 @@ public slots:
 class RhythmBar: public PlayWindowWidget
 {
     Q_OBJECT;
-    int rhythmLevel = 0;
+    int rhythmLevel = 20;
 public:
     RhythmBar(QWidget *parent = nullptr);
+    void flash();
+    void upd();
 private:
     void Paint();
 signals:
@@ -98,6 +100,21 @@ class TimeBoard: public PlayWindowWidget
     QFont DigitFont;
 public:
     TimeBoard(QWidget *parent = nullptr);
+private:
+    void Paint();
+signals:
+public slots:
+};
+
+class CountDown : public PlayWindowWidget
+{
+    Q_OBJECT;
+    int cntdwn = 0;
+    QFont _Font;
+
+public:
+    CountDown(QWidget *parent = nullptr);
+    void setcntdwn(int cnt);
 private:
     void Paint();
 signals:

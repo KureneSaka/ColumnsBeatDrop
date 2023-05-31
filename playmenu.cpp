@@ -124,12 +124,14 @@ void PlayMenu::shapeChange(State_w _stt)
         stt = _stt;
         frameTimeOffset = ftimer->getCurrentTime();
         setWindowModality(Qt::NonModal);
+        setFocusPolicy(Qt::NoFocus);
         clearFocus();
         break;
     case S_Expanding:
         stt = _stt;
         frameTimeOffset = ftimer->getCurrentTime();
         setWindowModality(Qt::ApplicationModal);
+        setFocusPolicy(Qt::StrongFocus);
         setFocus();
         break;
     case S_Normal:

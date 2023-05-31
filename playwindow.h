@@ -18,13 +18,14 @@ class PlayWindow:public QMainWindow
     MusicBoard mb;
     TimeBoard tb;
     GrooveBar gb;
+    CountDown cntdwn;
     MusicPlayer music1;
     MusicPlayer music2;
     MusicPlayer cd1;
     MusicPlayer cd2;
     bool countdowning = false;
     bool started = false;
-    int countdownnum = 1;
+    int countdownnum = 0;
     int musicLength = 0;
     int loop = 0;
 public:

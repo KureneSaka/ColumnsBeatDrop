@@ -1,4 +1,5 @@
 #include "playwindowwidgets.h"
+#include "frametimer.h"
 #include "predefines.h"
 #include "utils.h"
 
@@ -12,6 +13,7 @@ const int BoardPenWidth = 4;
 extern int grooveLevel;
 extern long long frameTimeOffset;
 extern int bpm;
+extern FrameTimer *ftimer;
 
 QColor GrooveColor[10] = {QColor(240, 0, 0),
                           QColor(240, 160, 0),
@@ -30,7 +32,7 @@ PlayWindowWidget::PlayWindowWidget(QWidget *parent)
     : QWidget(parent)
 {
     move(0, 0);
-    resize(1280, 960);
+    resize(WINDOW_WIDTH, WINDOW_HEIGHT);
     show();
 }
 void PlayWindowWidget::setRatio(float shapeRatio)
@@ -152,22 +154,42 @@ RhythmBar::RhythmBar(QWidget *parent)
 {}
 void RhythmBar::Paint()
 {
+    int maxLevel = grooveLevel <= 9 ? grooveLevel : 9;
     int width = 20;
     int BoardX = (WINDOW_WIDTH + BoardWidth) / 2 + 30;
     drawEdge(BoardX, BoardY, width, BoardHeight);
     QPainter printer(this);
     printer.setPen(QPen(Qt::transparent));
     printer.setBrush(QBrush(QColor(127, 127, 127, 127 * showRatio)));
-    for (int i = 0; i < 20 - rhythmLevel; i++) {
+    for (int i = 0; i < 20 - rhythmLevel-1; i++) {
         printer.drawRect(BoardX + 5, BoardY + 14 + 39 * i, 10, 31);
     }
-    for (int i = 20 - rhythmLevel; i < 20; i++) {
-        if (i < 10 - grooveLevel || i == 0) {
-            printer.setPen(QPen(QColor(240, 0, 0)));
+    for (int i = 20 - rhythmLevel - 1; i < 20; i++) {
+        if (i < 0) {
+            continue;
+        } else if (i == 20 - rhythmLevel - 1) {
+            if (i < 10 - maxLevel) {
+                printer.setBrush(QBrush(QColor(120, 0, 0)));
+            } else {
+                printer.setBrush(QBrush(QColor(0, 0, 120)));
+            }
+        }
+        else if (i < 10 - maxLevel) {
+            printer.setBrush(QBrush(QColor(240, 0, 0)));
         } else {
-            printer.setPen(QPen(QColor(0, 0, 240)));
+            printer.setBrush(QBrush(QColor(0, 0, 240)));
         }
         printer.drawRect(BoardX + 5, BoardY + 14 + 39 * i, 10, 31);
+    }
+}
+void RhythmBar::flash() {}
+void RhythmBar::upd()
+{
+    int during = ((ftimer->getCurrentTime() - frameTimeOffset) * bpm * 40 / FPS / 60) % 40;
+    if (during <= 20) {
+        rhythmLevel = 20 - during;
+    } else {
+        rhythmLevel = during - 20;
     }
 }
 
@@ -225,4 +247,44 @@ void TimeBoard::Paint()
     int BoardY0 = BoardY + 415;
     int BoardX = (WINDOW_WIDTH - BoardWidth) / 2 - 80 - width;
     drawEdge(BoardX, BoardY0, width, 385);
+}
+
+CountDown::CountDown(QWidget *parent)
+    : PlayWindowWidget(parent)
+{
+    _Font = fontLoader("STENCIL.TTF", 200);
+    showRatio = 1;
+}
+void CountDown::Paint()
+{
+    if (cntdwn > 4)
+        return;
+    QString cntdwnstring;
+    switch (cntdwn) {
+    case 1:
+        cntdwnstring = "3";
+        break;
+    case 2:
+        cntdwnstring = "2";
+        break;
+    case 3:
+        cntdwnstring = "1";
+        break;
+    case 4:
+        cntdwnstring = "GO!";
+        break;
+    default:
+        return;
+    }
+    QPainter painter(this);
+    painter.setFont(_Font);
+    painter.setPen(QPen(QColor(120, 120, 60, 128)));
+    painter.drawText(20, 20, WINDOW_WIDTH - 10, WINDOW_HEIGHT - 10, Qt::AlignCenter, cntdwnstring);
+    painter.setPen(QPen(QColor(240, 240, 120)));
+    painter.drawText(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, Qt::AlignCenter, cntdwnstring);
+
+}
+void CountDown::setcntdwn(int cnt)
+{
+    cntdwn = cnt;
 }

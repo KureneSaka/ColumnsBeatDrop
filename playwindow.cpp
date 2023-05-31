@@ -1,5 +1,6 @@
 #include "playwindow.h"
 #include "frametimer.h"
+#include "utils.h"
 
 extern FrameTimer *ftimer;
 int grooveLevel = 0;
@@ -16,6 +17,7 @@ PlayWindow::PlayWindow(QWidget *parent)
     , mb(this)
     , tb(this)
     , gb(this)
+    , cntdwn(this)
     , music1(this)
     , music2(this)
     , cd1(this)
@@ -40,7 +42,6 @@ void PlayWindow::paintEvent(QPaintEvent *)
     if (stt == S_Hidden)
         return;
     long long frametime = ftimer->getCurrentTime();
-    QPainter painter(this);
     float shapeRatio = 1;
     switch (stt) {
     case S_Expanding:
@@ -72,6 +73,7 @@ void PlayWindow::paintEvent(QPaintEvent *)
     sb.setRatio(shapeRatio);
     mb.setRatio(shapeRatio);
     tb.setRatio(shapeRatio);
+    cntdwn.setcntdwn(countdownnum);
 }
 
 void PlayWindow::shapeChange(State_w _stt)
@@ -81,12 +83,14 @@ void PlayWindow::shapeChange(State_w _stt)
         stt = _stt;
         frameTimeOffset = ftimer->getCurrentTime();
         setWindowModality(Qt::NonModal);
+        setFocusPolicy(Qt::NoFocus);
         clearFocus();
         break;
     case S_Expanding:
         stt = _stt;
         frameTimeOffset = ftimer->getCurrentTime();
         setWindowModality(Qt::ApplicationModal);
+        setFocusPolicy(Qt::StrongFocus);
         setFocus();
         break;
     case S_Normal:
@@ -114,9 +118,9 @@ void PlayWindow::refresh()
                 return;
             currentTime -= 60;
             if (currentTime >= 3600 * countdownnum / bpm) {
-                if (countdownnum <= 3) {
+                if (countdownnum <= 2) {
                     cd1.cleanplay();
-                } else if (countdownnum == 4) {
+                } else if (countdownnum == 3) {
                     cd2.cleanplay();
                 } else {
                     music1.play();
@@ -124,6 +128,7 @@ void PlayWindow::refresh()
                     started = true;
                     loop = 1;
                     music_on = true;
+                    countdowning = false;
                 }
                 countdownnum++;
             }
@@ -138,6 +143,7 @@ void PlayWindow::refresh()
                     music2.play();
                 }
             }
+            rb.upd();
         }
     }
 }
