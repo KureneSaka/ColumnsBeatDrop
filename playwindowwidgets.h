@@ -102,10 +102,15 @@ public slots:
 class BottomLeftBoard: public PlayWindowWidget
 {
     Q_OBJECT;
-    QFont WordFont;
-    QFont DigitFont;
+    QFont TitleFont;
+    QFont ContentFont;
+    QImage cover;
+    QString songname;
+    QString songartist;
 public:
     BottomLeftBoard(QWidget *parent = nullptr);
+    void loadcover(QString name);
+    void setsong(QString name, QString artist);
 private:
     void Paint();
 signals:

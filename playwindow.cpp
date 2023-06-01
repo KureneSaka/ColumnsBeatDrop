@@ -108,6 +108,8 @@ void PlayWindow::Initialize()
     bpm = 134;
     beattime = double(60000) / bpm;
     //musicLength = 130746;
+    blb.loadcover("TECHNOPOLIS 2085.png");
+    blb.setsong("TECHNOPOLIS 2085", "PRASTIK DANCEFLOOR");
     musicLength = 10746;
     brb.init(4);
 

@@ -333,8 +333,8 @@ void BottomRightBoard::setbeat(int _b)
 BottomLeftBoard::BottomLeftBoard(QWidget *parent)
     : PlayWindowWidget(parent)
 {
-    WordFont = fontLoader("STENCIL.TTF", 40);
-    DigitFont = fontLoader("Digital-Readout.ttf", 40);
+    TitleFont = fontLoader("STENCIL.TTF", 40);
+    ContentFont = fontLoader("UDDigiKyokashoN-R.ttc", 20);
 }
 void BottomLeftBoard::Paint()
 {
@@ -342,7 +342,28 @@ void BottomLeftBoard::Paint()
     int BoardY0 = BoardY + 415;
     int BoardX = (WINDOW_WIDTH - BoardWidth) / 2 - 80 - width;
     drawEdge(BoardX, BoardY0, width, 385);
+    QPainter painter(this);
+    painter.setPen(QPen(QColor(240, 240, 120, 255 * showRatio)));
+    painter.setFont(TitleFont);
+    painter.drawText(BoardX, BoardY0 + 10, width, 50, Qt::AlignCenter, "MUSIC");
+    painter.setFont(ContentFont);
+    painter.drawText(BoardX, BoardY0 + 280, width, 100, Qt::AlignCenter, "Name\n"+songname + "\nArtist\n" + songartist);
+    QTransform tsfm;
+    tsfm.translate(BoardX + 40, BoardY0 + 70);
+    tsfm.scale(200.0 / cover.width(), 200.0 / cover.width());
+    painter.setTransform(tsfm);
+    painter.drawImage(0, 0, cover);
 }
+void BottomLeftBoard::loadcover(QString name)
+{
+    cover.load("./res/pics/" + name);
+}
+void BottomLeftBoard::setsong(QString name, QString artist)
+{
+    songname = name;
+    songartist = artist;
+}
+
 
 CountDown::CountDown(QWidget *parent)
     : PlayWindowWidget(parent)
