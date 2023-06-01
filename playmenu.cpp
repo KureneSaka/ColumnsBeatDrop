@@ -5,6 +5,7 @@
 #include <QMediaDevices>
 
 extern FrameTimer *ftimer;
+int selectedMusic = -1;
 PlayMenu::PlayMenu(QWidget *parent)
     : QMainWindow(parent)
     , select(this)

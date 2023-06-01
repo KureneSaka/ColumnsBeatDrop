@@ -221,27 +221,122 @@ void ScoreBoard::Paint()
     drawEdge(BoardX, BoardY0, width, 385);
 }
 
-MusicBoard::MusicBoard(QWidget *parent)
+BottomRightBoard::BottomRightBoard(QWidget *parent)
     : PlayWindowWidget(parent)
 {
-    WordFont = fontLoader("STENCIL.TTF", 40);
-    DigitFont = fontLoader("Digital-Readout.ttf", 40);
+    WordFont = fontLoader("STENCIL.TTF", 20);
+    DigitFont = fontLoader("Digital-Readout.ttf", 70);
 }
-void MusicBoard::Paint()
+void BottomRightBoard::Paint()
 {
+    long long tm = (ftimer->getCurrentTime() - frameTimeOffset) * 1000 / FPS;//in ms
     int width = 280;
     int BoardX = (WINDOW_WIDTH + BoardWidth) / 2 + 80;
     int BoardY0 = BoardY + 415;
     drawEdge(BoardX, BoardY0, width, 385);
+    QPainter painter(this);
+    painter.setFont(WordFont);
+    painter.setPen(QPen(QColor(240, 240, 120, 255 * showRatio)));
+    painter.drawText(BoardX, BoardY0+10, width, 30, Qt::AlignCenter, "BPM");
+    painter.drawText(BoardX, BoardY0+110, width, 40, Qt::AlignCenter, "BEATS");
+    painter.drawText(BoardX, BoardY0+260, width, 40, Qt::AlignCenter, "TIME");
+    painter.setFont(DigitFont);
+    painter.setPen(QPen(QColor(31, 31, 31, 255 * showRatio)));
+    painter.drawText(BoardX, BoardY0 + 35, width - 100, 80, Qt::AlignRight | Qt::AlignVCenter, "888");
+    painter.drawText(BoardX,
+                     BoardY0 + 135,
+                     width - 80,
+                     80,
+                     Qt::AlignRight | Qt::AlignVCenter,
+                     "888:8");
+    painter.drawText(BoardX,
+                     BoardY0 + 285,
+                     width - 10,
+                     80,
+                     Qt::AlignRight | Qt::AlignVCenter,
+                     "888:88.888");
+    painter.setPen(QPen(QColor(240, 240, 120, 255 * showRatio)));
+    QString bpmstr;
+    bpmstr += std::to_string(bpm);
+    QString beatstr;
+    beatstr += std::to_string(bars);
+    beatstr += ":";
+    beatstr += std::to_string(beats);
+    QString timestr;
+    if (beats == 0) {
+        timestr = "0.000";
+    } else {
+        if (tm / 60000) {
+            timestr += std::to_string(tm / 60000);
+            timestr += ":";
+            if (tm % 60000 / 10000 == 0) {
+                timestr += "0";
+            }
+        }
+        timestr += std::to_string(tm % 60000 / 1000);
+        timestr += ".";
+        if (tm % 1000 / 100 == 0) {
+            timestr += "0";
+            if (tm % 100 / 10 == 0) {
+                timestr += "0";
+            }
+        }
+        timestr += std::to_string(tm % 1000);
+    }
+    painter
+        .drawText(BoardX, BoardY0 + 35, width - 100, 80, Qt::AlignRight | Qt::AlignVCenter, bpmstr);
+    painter.drawText(BoardX,
+                     BoardY0 + 135,
+                     width - 80,
+                     80,
+                     Qt::AlignRight | Qt::AlignVCenter,
+                     beatstr);
+    painter.drawText(BoardX,
+                     BoardY0 + 285,
+                     width - 10,
+                     80,
+                     Qt::AlignRight | Qt::AlignVCenter,
+                     timestr);
+    painter.setPen(Qt::transparent);
+    float deltatm = tm * bpm / float(60000) - totalbeats;
+    float shine = (cos(qDegreesToRadians(deltatm * 180)) + 1) / 2;
+    for (int i = 0; i < beatsPerBar; i++) {
+        if (i == beats - 1) {
+            if (i == 0)
+                painter.setBrush(
+                    QBrush(QColor(128 * shine + 127, 128 * shine + 127, 127 - 127 * shine)));
+            else
+                painter.setBrush(
+                    QBrush(QColor(127 - 127 * shine, 128 * shine + 127, 128 * shine + 127)));
+        } else {
+            painter.setBrush(QBrush(QColor(127, 127, 127)));
+        }
+        painter.drawRect(BoardX + 20 + (250 / beatsPerBar) * i,
+                         BoardY0 + 220,
+                         250 / beatsPerBar - 10,
+                         30);
+    }
+
+}
+void BottomRightBoard::init(int bpb)
+{
+    beatsPerBar = bpb;
+}
+void BottomRightBoard::setbeat(int _b)
+{
+    _b--;
+    totalbeats = _b;
+    bars = _b / beatsPerBar;
+    beats = _b % beatsPerBar + 1;
 }
 
-TimeBoard::TimeBoard(QWidget *parent)
+BottomLeftBoard::BottomLeftBoard(QWidget *parent)
     : PlayWindowWidget(parent)
 {
     WordFont = fontLoader("STENCIL.TTF", 40);
     DigitFont = fontLoader("Digital-Readout.ttf", 40);
 }
-void TimeBoard::Paint()
+void BottomLeftBoard::Paint()
 {
     int width = 280;
     int BoardY0 = BoardY + 415;

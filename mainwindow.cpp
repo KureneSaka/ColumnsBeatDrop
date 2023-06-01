@@ -26,7 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(mm, &MainMenu::StartGame, this, [=]() {
         pm = new PlayMenu(this);
         pm->show();
-        connect(pm, &PlayMenu::GameStart, this, [=]() { pw->GetIn(); });
+        connect(pm, &PlayMenu::GameStart, this, [=]() { pw->Initialize(); });
     });
     mm->setFocus();
 }

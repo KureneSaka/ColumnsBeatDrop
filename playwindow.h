@@ -7,6 +7,17 @@
 #include "musicplayer.h"
 #include <QSoundEffect>
 
+enum playstatus {
+    idle,
+    beating,
+    beated,
+    erasing,
+    erased,
+    dropping,
+    dropped,
+};
+
+
 class PlayWindow:public QMainWindow
 {
     Q_OBJECT;
@@ -15,8 +26,8 @@ class PlayWindow:public QMainWindow
     RhythmBar rb;
     NextBlockBoard nbb;
     ScoreBoard sb;
-    MusicBoard mb;
-    TimeBoard tb;
+    BottomRightBoard brb;
+    BottomLeftBoard blb;
     GrooveBar gb;
     CountDown cntdwn;
     MusicPlayer music1;
@@ -25,18 +36,21 @@ class PlayWindow:public QMainWindow
     MusicPlayer cd2;
     bool countdowning = false;
     bool started = false;
+    playstatus totalstatus = idle;
     int countdownnum = 0;
     int musicLength = 0;
     int loop = 0;
+    int totalbeats = 0;
 public:
     PlayWindow(QWidget *parent = nullptr);
-    void GetIn();
+    void Initialize();
     void setMusic(QString name);
 private:
     void paintEvent(QPaintEvent *);
     void shapeChange(State_w _stt);
     void keyPressEvent(QKeyEvent *event);
     void refresh();
+//    void beatdrop();
 signals:
     void playWindowUpdate();
 public slots:

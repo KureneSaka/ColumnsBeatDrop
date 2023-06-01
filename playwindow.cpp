@@ -3,10 +3,12 @@
 #include "utils.h"
 
 extern FrameTimer *ftimer;
+extern int selectedMusic;
 int grooveLevel = 0;
 long long frameTimeOffset = 0;
-int bpm = 134;
+int bpm = 0;
 extern bool music_on;
+double beattime = 0;//in ms
 
 PlayWindow::PlayWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -14,8 +16,8 @@ PlayWindow::PlayWindow(QWidget *parent)
     , rb(this)
     , nbb(this)
     , sb(this)
-    , mb(this)
-    , tb(this)
+    , brb(this)
+    , blb(this)
     , gb(this)
     , cntdwn(this)
     , music1(this)
@@ -23,11 +25,8 @@ PlayWindow::PlayWindow(QWidget *parent)
     , cd1(this)
     , cd2(this)
 {
-    music1.readMusic("TECHNOPOLIS 2085.mp3");
-    music2.readMusic("TECHNOPOLIS 2085.mp3");
     cd1.readSound("countdown.wav");
     cd2.readSound("countdown_f.wav");
-    musicLength = 130746;
     setWindowModality(Qt::NonModal);
     setFocusPolicy(Qt::NoFocus);
     setWindowFlags(Qt::FramelessWindowHint);
@@ -71,8 +70,8 @@ void PlayWindow::paintEvent(QPaintEvent *)
     rb.setRatio(shapeRatio);
     nbb.setRatio(shapeRatio);
     sb.setRatio(shapeRatio);
-    mb.setRatio(shapeRatio);
-    tb.setRatio(shapeRatio);
+    brb.setRatio(shapeRatio);
+    blb.setRatio(shapeRatio);
     cntdwn.setcntdwn(countdownnum);
 }
 
@@ -99,9 +98,19 @@ void PlayWindow::shapeChange(State_w _stt)
     }
 }
 
-void PlayWindow::GetIn()
+void PlayWindow::Initialize()
 {
     shapeChange(S_Expanding);
+    QString musicname = "1.mp3";
+    music1.readMusic(musicname);
+    music2.readMusic(musicname);
+
+    bpm = 134;
+    beattime = double(60000) / bpm;
+    //musicLength = 130746;
+    musicLength = 10746;
+    brb.init(4);
+
 }
 
 void PlayWindow::refresh()
@@ -126,7 +135,6 @@ void PlayWindow::refresh()
                     music1.play();
                     frameTimeOffset = ftimer->getCurrentTime();
                     started = true;
-                    loop = 1;
                     music_on = true;
                     countdowning = false;
                 }
@@ -135,13 +143,19 @@ void PlayWindow::refresh()
             return;
         } else {
             long long currentTime = ftimer->getCurrentTime() - frameTimeOffset;
-            long long loopTime = musicLength * loop * FPS / 1000;
+            long long loopTime = musicLength * (loop+1) * FPS / 1000;
+            long long beatsTime = beattime * totalbeats * FPS / 1000;
             if (currentTime >= loopTime) {
+                loop++;
                 if (loop % 2 == 0) {
                     music1.play();
                 } else {
                     music2.play();
                 }
+            }
+            if (currentTime >= beatsTime) {
+                totalbeats++;
+                brb.setbeat(totalbeats);
             }
             rb.upd();
         }
@@ -154,12 +168,20 @@ void PlayWindow::keyPressEvent(QKeyEvent *event)
         return;
     if (stt != S_Normal)
         return;
+    if (!started)
+        return;
     switch (event->key()) {
     case Qt::Key_W:
         break;
     case Qt::Key_S:
         break;
     case Qt::Key_J:
+        break;
+    case Qt::Key_Space:
+        if (totalstatus == idle) {
+            totalstatus = beating;
+            //beatdrop();
+        }
         break;
     case Qt::Key_Up:
         grooveLevel++;

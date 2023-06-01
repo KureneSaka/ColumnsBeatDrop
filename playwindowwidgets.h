@@ -80,26 +80,32 @@ signals:
 public slots:
 };
 
-class MusicBoard: public PlayWindowWidget
+class BottomRightBoard: public PlayWindowWidget
 {
     Q_OBJECT;
+    int beatsPerBar = 0;
+    int bars = 0;
+    int beats = 0;
+    int totalbeats = 0;
     QFont WordFont;
     QFont DigitFont;
 public:
-    MusicBoard(QWidget *parent = nullptr);
+    BottomRightBoard(QWidget *parent = nullptr);
+    void init(int bpb);
+    void setbeat(int _b);
 private:
     void Paint();
 signals:
 public slots:
 };
 
-class TimeBoard: public PlayWindowWidget
+class BottomLeftBoard: public PlayWindowWidget
 {
     Q_OBJECT;
     QFont WordFont;
     QFont DigitFont;
 public:
-    TimeBoard(QWidget *parent = nullptr);
+    BottomLeftBoard(QWidget *parent = nullptr);
 private:
     void Paint();
 signals:
