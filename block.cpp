@@ -83,6 +83,11 @@ void block::paintEvent(QPaintEvent *)
     }
 }
 
+blockColor block::getBlockColor()
+{
+    return blkclr;
+}
+
 column::column(QWidget *parent, blockColor clr1, blockColor clr2, blockColor clr3)
     : QWidget(parent)
     , blocks{block(this, clr1), block(this, clr2), block(this, clr3)}
@@ -99,7 +104,22 @@ void column::paintEvent(QPaintEvent *)
     painter.setPen(QPen(QColor(200, 200, 200, 255 * edgeshine), 2));
     painter.drawRect(1, 1, SquareWidth - 2, 3 * SquareWidth - 2);
 }
+blockColor column::getBlockColor(int index)
+{
+    return blocks[(index + 3 - exchangeind) % 3].getBlockColor();
+}
 void column::setshine(float sh)
 {
     edgeshine = sh;
+}
+void column::exchange(bool is_up)
+{
+    if (is_up)
+        exchangeind = (exchangeind + 2) % 3;
+    else
+        exchangeind = (exchangeind + 1) % 3;
+    for (int i = 0; i < 3; i++) {
+        blocks[i].move(0, SquareWidth * ((i + exchangeind) % 3));
+    }
+
 }

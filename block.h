@@ -10,7 +10,7 @@ class block : public QWidget
     blockColor blkclr;
 public:
     block(QWidget *parent = nullptr, blockColor clr = BNULL);
-
+    blockColor getBlockColor();
 private:
     void paintEvent(QPaintEvent *);
 };
@@ -20,6 +20,7 @@ class column : public QWidget
     Q_OBJECT
     block blocks[3];
     float edgeshine = 0;
+    int exchangeind = 0;
 
 public:
     column(QWidget *parent = nullptr,
@@ -27,6 +28,8 @@ public:
            blockColor clr2 = BNULL,
            blockColor clr3 = BNULL);
     void setshine(float sh);
+    blockColor getBlockColor(int index);
+    void exchange(bool is_up);
 private:
     void paintEvent(QPaintEvent *);
 };

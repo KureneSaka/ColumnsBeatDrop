@@ -62,6 +62,10 @@ void PlayWindowWidget::drawEdge(int x, int y, int w, int h, int shadowWidth)
     painter.drawLine(pru, prd1);
     painter.drawLine(pld, prd2);
 }
+void PlayWindowWidget::GameOver()
+{
+    stop = true;
+}
 
 PlayBoard::PlayBoard(QWidget *parent)
     : PlayWindowWidget(parent)
@@ -193,6 +197,8 @@ void RhythmBar::Paint()
 void RhythmBar::flash() {}
 void RhythmBar::upd()
 {
+    if (stop)
+        return;
     int during = ((ftimer->getCurrentTime() - frameTimeOffset) * bpm * 40 / FPS / 60) % 40;
     if (during <= 20) {
         rhythmLevel = 20 - during;
@@ -360,7 +366,7 @@ void BottomRightBoard::Paint()
     float deltatm = tm * bpm / float(60000) - totalbeats;
     float shine = (cos(qDegreesToRadians(deltatm * 180)) + 1) / 2;
     for (int i = 0; i < beatsPerBar; i++) {
-        if (i == beats - 1) {
+        if (i == beats - 1 && !stop) {
             if (i == 0)
                 painter.setBrush(
                     QBrush(QColor(128 * shine + 127, 128 * shine + 127, 127 - 127 * shine)));
@@ -383,6 +389,8 @@ void BottomRightBoard::init(int bpb)
 }
 void BottomRightBoard::setbeat(int _b)
 {
+    if (stop)
+        return;
     _b--;
     totalbeats = _b;
     bars = _b / beatsPerBar;
@@ -432,32 +440,40 @@ CountDown::CountDown(QWidget *parent)
 }
 void CountDown::Paint()
 {
-    if (cntdwn > 4)
-        return;
-    QString cntdwnstring;
-    switch (cntdwn) {
-    case 1:
-        cntdwnstring = "3";
-        break;
-    case 2:
-        cntdwnstring = "2";
-        break;
-    case 3:
-        cntdwnstring = "1";
-        break;
-    case 4:
-        cntdwnstring = "GO!";
-        break;
-    default:
-        return;
+    if (cntdwn <= 4 || stop) {
+        QString cntdwnstring;
+        QPainter painter(this);
+        painter.setFont(_Font);
+        if (cntdwn <= 4) {
+            switch (cntdwn) {
+            case 1:
+                cntdwnstring = "3";
+                break;
+            case 2:
+                cntdwnstring = "2";
+                break;
+            case 3:
+                cntdwnstring = "1";
+                break;
+            case 4:
+                cntdwnstring = "GO!";
+                break;
+            default:
+                return;
+            }
+            painter.setPen(QPen(QColor(120, 120, 60, 128)));
+            painter.drawText(20, 20, WINDOW_WIDTH - 10, WINDOW_HEIGHT - 10, Qt::AlignCenter, cntdwnstring);
+            painter.setPen(QPen(QColor(240, 240, 120)));
+            painter.drawText(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, Qt::AlignCenter, cntdwnstring);
+        }
+        else if (stop) {
+            cntdwnstring = "GAME   OVER";
+            painter.setPen(QPen(QColor(60, 60, 60, 128)));
+            painter.drawText(20, 20, WINDOW_WIDTH - 10, WINDOW_HEIGHT - 10, Qt::AlignCenter, cntdwnstring);
+            painter.setPen(QPen(QColor(120, 120, 120)));
+            painter.drawText(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, Qt::AlignCenter, cntdwnstring);
+        }
     }
-    QPainter painter(this);
-    painter.setFont(_Font);
-    painter.setPen(QPen(QColor(120, 120, 60, 128)));
-    painter.drawText(20, 20, WINDOW_WIDTH - 10, WINDOW_HEIGHT - 10, Qt::AlignCenter, cntdwnstring);
-    painter.setPen(QPen(QColor(240, 240, 120)));
-    painter.drawText(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, Qt::AlignCenter, cntdwnstring);
-
 }
 void CountDown::setcntdwn(int cnt)
 {

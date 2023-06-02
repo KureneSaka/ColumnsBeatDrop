@@ -8,16 +8,8 @@
 #include "block.h"
 #include <QSoundEffect>
 
-enum playstatus {
-    idle,
-    beating,
-    beated,
-    erasing,
-    erased,
-    dropping,
-    dropped,
-};
-enum direction { left, right, down };
+enum playstatus { idle, normaldrop, beating, beated, erasing, erased, dropping, dropped, gameover };
+enum movedirection { left, right };
 
 class PlayWindow:public QMainWindow
 {
@@ -46,19 +38,29 @@ class PlayWindow:public QMainWindow
 
     column *droppingColumn = NULL;
     int droppingColumnX = 3;
-    float droppingColumnY = 0.0;
-    int droppingColumnYint = 0;
+    float droppingColumnY = 1.0;
+    int droppingColumnYint = 1;
+    bool droppingstop = false;
+    int droppingstoptime = 0;
+
+    bool speeduping = false;
+
     block *board[BoardLines][BoardColumns] = {{nullptr}};
 public:
     PlayWindow(QWidget *parent = nullptr);
+    ~PlayWindow();
     void Initialize();
     void setMusic(QString name);
 private:
     void paintEvent(QPaintEvent *);
     void shapeChange(State_w _stt);
     void keyPressEvent(QKeyEvent *event);
+    void keyReleaseEvent(QKeyEvent *event);
     void refresh();
-    void MoveColumn(direction dr);
+    void MoveColumn(movedirection dr);
+    void UpShiftColumn(bool is_up);
+    void ColumnNormalDrop();
+    void GameOver();
 //    void beatdrop();
 signals:
     void playWindowUpdate();

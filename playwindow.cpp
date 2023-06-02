@@ -38,6 +38,18 @@ PlayWindow::PlayWindow(QWidget *parent)
     stt = S_Hidden;
     connect(ftimer, &FrameTimer::frameRefresh, this, [=]() { refresh(); });
 }
+
+PlayWindow::~PlayWindow()
+{
+    delete droppingColumn;
+    for (int i = 0; i < BoardLines; i++) {
+        for (int j = 0; j < BoardColumns; j++) {
+            if (board[i][j])
+                delete board[i][j];
+        }
+    }
+}
+
 void PlayWindow::paintEvent(QPaintEvent *)
 {
     if (stt == S_Hidden)
@@ -77,7 +89,7 @@ void PlayWindow::paintEvent(QPaintEvent *)
     cntdwn.setcntdwn(countdownnum);
     if (droppingColumn) {
         droppingColumn->move(BoardX0 + droppingColumnX * SquareWidth,
-                             BoardY + (droppingColumnY - 2) * SquareWidth);
+                             BoardY + (droppingColumnY - 3) * SquareWidth);
     }
 }
 
@@ -119,6 +131,13 @@ void PlayWindow::Initialize()
     musicLength = 10746;
     brb.init(4);
     downspeed = 0.5 * bpm / 3600;
+    for (int i = BoardLines - BoardColumns; i < BoardLines; i++) {
+        for (int j = 0; j < i - BoardLines + BoardColumns; j++) {
+            board[i][j] = new block(this, BNULL);
+            board[i][j]->move(BoardX0 + j * SquareWidth, BoardY + i * SquareWidth);
+            board[i][j]->show();
+        }
+    }
 }
 
 void PlayWindow::refresh()
@@ -154,8 +173,9 @@ void PlayWindow::refresh()
             long long currentTime = ftimer->getCurrentTime() - frameTimeOffset;
             long long loopTime = musicLength * (loop+1) * FPS / 1000;
             long long beatsTime = beattime * totalbeats * FPS / 1000;
-            float deltaTime = currentTime * float(bpm) / FPS / 60 + 1 - totalbeats;//0 when just on beat, 1 when next beat
-            if (currentTime >= loopTime) {
+            float deltaTime = currentTime * float(bpm) / FPS / 60 + 1
+                              - totalbeats; //0 when just on beat, 1 when next beat
+            if (currentTime >= loopTime && totalstatus != gameover) {
                 loop++;
                 if (loop % 2 == 0) {
                     music1.play();
@@ -167,29 +187,61 @@ void PlayWindow::refresh()
                 totalbeats++;
                 brb.setbeat(totalbeats);
                 if (droppingColumn == NULL && totalstatus == idle) {
-                    droppingColumnX = 3;
-                    droppingColumnY = 0.0;
-                    droppingColumn = nbb.popColumn();
+                    if (board[0][3]) {
+                        GameOver();
+                    } else {
+                        droppingColumnX = 3;
+                        droppingColumnY = 1.0;
+                        droppingColumnYint = 1;
+                        droppingColumn = nbb.popColumn();
+                    }
                 }
             }
-            droppingColumn->setshine(cos(qDegreesToRadians(deltaTime * 90)));
-            droppingColumnY += downspeed;
-            if (droppingColumnY >= droppingColumnYint) {
-                droppingColumnYint++;
+            if (droppingColumn) {
+                droppingColumn->setshine(cos(qDegreesToRadians(deltaTime * 90)));
+                if (speeduping)
+                    droppingColumnY += 10 * downspeed;
+                else
+                    droppingColumnY += downspeed;
+                if (droppingColumnY >= droppingColumnYint) {
+                    if (droppingColumnYint == BoardLines
+                        || board[droppingColumnYint][droppingColumnX]) {
+                        droppingColumnY = droppingColumnYint;
+                        if (droppingstop == false) {
+                            droppingstop = true;
+                            droppingstoptime = 0;
+                        }
+                    } else {
+                        droppingColumnYint++;
+                        if (droppingstop == true)
+                            droppingstop = false;
+                    }
+                    if (droppingstop) {
+                        if (speeduping)
+                            droppingstoptime += 5;
+                        else
+                            droppingstoptime++;
+                        if (droppingstoptime >= beattime * 60 * 2 / 1000) {
+                            totalstatus = normaldrop;
+                            ColumnNormalDrop();
+                            droppingstop = false;
+                        }
+                    }
+                }
             }
             rb.upd();
         }
     }
 }
 
-void PlayWindow::MoveColumn(direction dr)
+void PlayWindow::MoveColumn(movedirection dr)
 {
-    if (!droppingColumn && totalstatus != idle) {
+    if (!droppingColumn || totalstatus != idle) {
         return;
     }
     switch (dr) {
     case left:
-        if (board[droppingColumnX - 1][droppingColumnYint]) {
+        if (board[droppingColumnYint - 1][droppingColumnX - 1]) {
             return;
         } else {
             droppingColumnX--;
@@ -197,16 +249,56 @@ void PlayWindow::MoveColumn(direction dr)
         }
         break;
     case right:
-        if (board[droppingColumnX + 1][droppingColumnYint]) {
+        if (board[droppingColumnYint - 1][droppingColumnX + 1]) {
             return;
         } else {
             droppingColumnX++;
             droppingColumnX = droppingColumnX < BoardColumns ? droppingColumnX : BoardColumns - 1;
         }
         break;
-    case down:
-        break;
     }
+}
+void PlayWindow::UpShiftColumn(bool is_up)
+{
+    if (!droppingColumn || totalstatus != idle) {
+        return;
+    }
+    droppingColumn->exchange(is_up);
+}
+
+void PlayWindow::ColumnNormalDrop()
+{
+    for (int i = 0; i < 3; i++) {
+        if (droppingColumnYint - i - 1 >= 0) {
+            board[droppingColumnYint - i - 1][droppingColumnX]
+                = new block(this, droppingColumn->getBlockColor(2 - i));
+            board[droppingColumnYint - i - 1][droppingColumnX]
+                ->move(BoardX0 + droppingColumnX * SquareWidth,
+                       BoardY + (droppingColumnYint - i - 1) * SquareWidth);
+            board[droppingColumnYint - i - 1][droppingColumnX]->show();
+        }
+    }
+    column *tmp = droppingColumn;
+    droppingColumn = NULL;
+    delete tmp;
+    totalstatus = idle;
+}
+
+void PlayWindow::GameOver()
+{
+    totalstatus = gameover;
+    music1.stop();
+    music2.stop();
+    music_on = false;
+    pb.GameOver();
+    rb.GameOver();
+    nbb.GameOver();
+    sb.GameOver();
+    brb.GameOver();
+    blb.GameOver();
+    gb.GameOver();
+    cntdwn.GameOver();
+
 }
 
 void PlayWindow::keyPressEvent(QKeyEvent *event)
@@ -218,16 +310,25 @@ void PlayWindow::keyPressEvent(QKeyEvent *event)
     if (!started)
         return;
     switch (event->key()) {
+    case Qt::Key_Down:
     case Qt::Key_S:
-        MoveColumn(down);
+        speeduping = true;
         break;
+    case Qt::Key_Left:
     case Qt::Key_A:
         MoveColumn(left);
         break;
+    case Qt::Key_Right:
     case Qt::Key_D:
         MoveColumn(right);
         break;
     case Qt::Key_J:
+    case Qt::Key_Z:
+        UpShiftColumn(false);
+        break;
+    case Qt::Key_K:
+    case Qt::Key_X:
+        UpShiftColumn(true);
         break;
     case Qt::Key_Space:
         if (totalstatus == idle) {
@@ -235,12 +336,23 @@ void PlayWindow::keyPressEvent(QKeyEvent *event)
             //beatdrop();
         }
         break;
-    case Qt::Key_Up:
-        break;
+    }
+}
+
+void PlayWindow::keyReleaseEvent(QKeyEvent *event)
+{
+    if (event->isAutoRepeat() == true)
+        return;
+    if (stt != S_Normal)
+        return;
+    if (!started)
+        return;
+    switch (event->key()) {
     case Qt::Key_Down:
-        break;
-    case Qt::Key_Return:
+    case Qt::Key_S:
+        speeduping = false;
         break;
     }
 }
+
 

@@ -10,11 +10,13 @@ class PlayWindowWidget: public QWidget
     Q_OBJECT;
 protected:
     float showRatio = 0;
+    bool stop = false;
     void paintEvent(QPaintEvent *);
     virtual void Paint() = 0;
     void drawEdge(int x, int y, int w, int h, int shadowWidth = 6);
 public:
     PlayWindowWidget(QWidget *parent = nullptr);
+    void GameOver();
     void setRatio(float shapeRatio);
 private:
 };
