@@ -20,6 +20,11 @@ long long FrameTimer::getCurrentTime() const
 {
     return frameTime;
 }
+long long FrameTimer::getRealTime() const
+{
+    QDateTime nowTime(QDateTime::currentDateTime());
+    return beginTime->msecsTo(nowTime);
+}
 FrameTimer::~FrameTimer()
 {
     delete beginTime;

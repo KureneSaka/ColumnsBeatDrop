@@ -14,6 +14,7 @@ public:
     FrameTimer(QWidget *parent = nullptr);
     ~FrameTimer();
     long long getCurrentTime() const;
+    long long getRealTime() const;
 signals:
     void frameRefresh();
 public slots:

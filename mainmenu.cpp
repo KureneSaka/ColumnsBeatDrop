@@ -3,8 +3,6 @@
 #include "frametimer.h"
 #include <QDebug>
 #include <QRawFont>
-#include <QAudioDevice>
-#include <QMediaDevices>
 
 extern FrameTimer *ftimer;
 
@@ -13,10 +11,8 @@ MainMenu::MainMenu(QWidget *parent)
     , select(this)
     , confirm(this)
 {
-    select.setAudioDevice(QMediaDevices::defaultAudioOutput());
-    confirm.setAudioDevice(QMediaDevices::defaultAudioOutput());
-    select.setSource(QUrl::fromLocalFile("./res/sounds/select.wav"));
-    confirm.setSource(QUrl::fromLocalFile("./res/sounds/confirm.wav"));
+    select.readSound("select.wav");
+    confirm.readSound("confirm.wav");
     setWindowModality(Qt::ApplicationModal);
     setWindowFlags(Qt::FramelessWindowHint);
     move(MIDDLE_WIDTH - 350, MIDDLE_HEIGHT - 350);

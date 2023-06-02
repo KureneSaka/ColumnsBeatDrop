@@ -1,11 +1,11 @@
 #include "playwindow.h"
 #include "frametimer.h"
-#include "utils.h"
 
 extern FrameTimer *ftimer;
 extern int selectedMusic;
 int grooveLevel = 0;
 long long frameTimeOffset = 0;
+long long realTimeOffset = 0;//in ms
 int bpm = 0;
 extern bool music_on;
 double beattime = 0;//in ms
@@ -28,10 +28,16 @@ PlayWindow::PlayWindow(QWidget *parent)
     , cd1(this)
     , cd2(this)
     , fail(this)
+    , beatdropsound(this)
+    , eliminatesound(this)
+    , shiftsound(this)
 {
     cd1.readSound("countdown.wav");
     cd2.readSound("countdown_f.wav");
     fail.readSound("fail.wav");
+    beatdropsound.readSound("beatdrop.wav");
+    eliminatesound.readSound("eliminate.wav");
+    shiftsound.readSound("shift.wav");
     setWindowModality(Qt::NonModal);
     setFocusPolicy(Qt::NoFocus);
     setWindowFlags(Qt::FramelessWindowHint);
@@ -132,13 +138,6 @@ void PlayWindow::Initialize()
     musicLength = 10746;
     brb.init(4);
     downspeed = 0.5 * bpm / 3600;
-    for (int i = BoardLines - BoardColumns; i < BoardLines; i++) {
-        for (int j = 0; j < i - BoardLines + BoardColumns; j++) {
-            board[i][j] = new block(this, BNULL);
-            board[i][j]->move(BoardX0 + j * SquareWidth, BoardY + i * SquareWidth);
-            board[i][j]->show();
-        }
-    }
 }
 
 void PlayWindow::refresh()
@@ -157,11 +156,12 @@ void PlayWindow::refresh()
             if (currentTime >= 3600 * countdownnum / bpm) {
                 nbb.initialnew(countdownnum);
                 if (countdownnum <= 2) {
-                    cd1.cleanplay();
+                    cd1.play();
                 } else if (countdownnum == 3) {
-                    cd2.cleanplay();
+                    cd2.play();
                 } else {
                     music1.play();
+                    realTimeOffset = ftimer->getRealTime();
                     frameTimeOffset = ftimer->getCurrentTime();
                     started = true;
                     music_on = true;
@@ -171,11 +171,15 @@ void PlayWindow::refresh()
             }
             return;
         } else {
+            if (board[0][3] && totalstatus == idle) {
+                GameOver();
+            }
             long long currentTime = ftimer->getCurrentTime() - frameTimeOffset;
             long long loopTime = musicLength * (loop+1) * FPS / 1000;
             long long beatsTime = beattime * totalbeats * FPS / 1000;
             float deltaTime = currentTime * float(bpm) / FPS / 60 + 1
                               - totalbeats; //0 when just on beat, 1 when next beat
+            long long currentrealtime = ftimer->getRealTime() - realTimeOffset;
             if (currentTime >= loopTime && totalstatus != gameover) {
                 loop++;
                 if (loop % 2 == 0) {
@@ -188,49 +192,77 @@ void PlayWindow::refresh()
                 totalbeats++;
                 brb.setbeat(totalbeats);
                 if (droppingColumn == NULL && totalstatus == idle) {
-                    if (board[0][3]) {
-                        GameOver();
-                    } else {
-                        droppingColumnX = 3;
-                        droppingColumnY = 1.0;
-                        droppingColumnYint = 1;
-                        droppingColumn = nbb.popColumn();
-                    }
+                    rb.finishflash();
+                    gb.finishflash();
+                    droppingColumnX = 3;
+                    droppingColumnY = 1.0;
+                    droppingColumnYint = 1;
+                    droppingColumn = nbb.popColumn();
                 }
             }
-            if (droppingColumn) {
-                droppingColumn->setshine(cos(qDegreesToRadians(deltaTime * 90)));
-                if (speeduping)
-                    droppingColumnY += 10 * downspeed;
-                else
-                    droppingColumnY += downspeed;
-                if (droppingColumnY >= droppingColumnYint) {
-                    if (droppingColumnYint == BoardLines
-                        || board[droppingColumnYint][droppingColumnX]) {
-                        droppingColumnY = droppingColumnYint;
-                        if (droppingstop == false) {
-                            droppingstop = true;
-                            droppingstoptime = 0;
+            switch (totalstatus) {
+            case idle: {
+                if (droppingColumn) {
+                    droppingColumn->setshine(cos(qDegreesToRadians(deltaTime * 90)));
+                    if (speeduping)
+                        droppingColumnY += 10 * downspeed;
+                    else
+                        droppingColumnY += downspeed;
+                    if (droppingColumnY >= droppingColumnYint) {
+                        if (droppingColumnYint == BoardLines
+                            || board[droppingColumnYint][droppingColumnX]) {
+                            droppingColumnY = droppingColumnYint;
+                            if (droppingstop == false) {
+                                droppingstop = true;
+                                droppingstoptime = 0;
+                            }
+                        } else {
+                            droppingColumnYint++;
+                            if (droppingstop == true)
+                                droppingstop = false;
                         }
-                    } else {
-                        droppingColumnYint++;
-                        if (droppingstop == true)
-                            droppingstop = false;
+                        if (droppingstop) {
+                            if (speeduping)
+                                droppingstoptime += 5;
+                            else
+                                droppingstoptime++;
+                            if (droppingstoptime >= beattime * 60 * 2 / 1000) {
+                                totalstatus = normaldrop;
+                                NormalDrop();
+                                droppingstop = false;
+                            }
+                        }
                     }
-                    if (droppingstop) {
-                        if (speeduping)
-                            droppingstoptime += 5;
-                        else
-                            droppingstoptime++;
-                        if (droppingstoptime >= beattime * 60 * 2 / 1000) {
-                            totalstatus = normaldrop;
+                }
+                rb.upd(currentrealtime);
+            } break;
+            case normaldrop:
+                rb.upd(currentrealtime);
+                break;
+            case trybeatdrop: {
+                if (droppingColumn) {
+                    droppingColumn->setshine(1);
+                    droppingColumnY += beatdropspeed;
+                    if (droppingColumnY >= droppingColumnYint) {
+                        if (droppingColumnYint == BoardLines
+                            || board[droppingColumnYint][droppingColumnX]) {
+                            droppingColumnY = droppingColumnYint;
                             NormalDrop();
-                            droppingstop = false;
+                            if (beatdropsuc) {
+                                totalstatus = idle;
+                            } else if (!beatdropsuc) {
+                                totalstatus = idle;
+                            }
+                        } else {
+                            droppingColumnYint++;
                         }
                     }
                 }
+                rb.upd(beatdroptime);
+            } break;
+            case gameover:
+                break;
             }
-            rb.upd(currentTime);
         }
     }
 }
@@ -261,6 +293,7 @@ void PlayWindow::MoveColumn(movedirection dr)
 }
 void PlayWindow::UpShiftColumn(bool is_up)
 {
+    shiftsound.play();
     if (!droppingColumn || totalstatus != idle) {
         return;
     }
@@ -287,7 +320,49 @@ void PlayWindow::NormalDrop()
 
 void PlayWindow::TryBeatDrop()
 {
-
+    beatdroptime = ftimer->getRealTime() - realTimeOffset;
+    float deltaTime = beatdroptime - (totalbeats - 1) * beattime;
+    float beatableTime = beattime / 40 * (10 - (grooveLevel > 9 ? 9 : grooveLevel));
+    if ((deltaTime >= -beatableTime && deltaTime <= beatableTime)
+        || (deltaTime >= beattime - beatableTime && deltaTime <= beattime + beatableTime)) {
+        beatdropsuc = true;
+        beatdropsound.play();
+        gb.startflash();
+        rb.startflash();
+        float droptime = 0;
+        if (deltaTime > -beatableTime && deltaTime < beatableTime) {
+            droptime = beattime * 2 - deltaTime;
+        } else {
+            droptime = beattime * 3 - deltaTime;
+        }
+        BeatDropSuccess(droptime);
+    } else {
+        beatdropsuc = false;
+        float droptime = beattime * 2;
+        BeatDropFail(droptime);
+    }
+}
+void PlayWindow::BeatDropSuccess(float droptime)
+{
+    int destY = 0;
+    for (; board[destY][droppingColumnX] == NULL; destY++) {
+    }
+    if (destY - droppingColumnY < 0.03) {
+        beatdropspeed = 1 / droptime * SquareWidth;
+    } else {
+        beatdropspeed = (destY - droppingColumnY) / droptime * SquareWidth;
+    }
+}
+void PlayWindow::BeatDropFail(float droptime)
+{
+    int destY = 0;
+    for (; board[destY][droppingColumnX] == NULL; destY++) {
+    }
+    if (destY - droppingColumnY < 0.03) {
+        beatdropspeed = 1 / droptime * SquareWidth;
+    } else {
+        beatdropspeed = (destY - droppingColumnY) / droptime * SquareWidth;
+    }
 }
 
 void PlayWindow::GameOver()
@@ -344,10 +419,18 @@ void PlayWindow::keyPressEvent(QKeyEvent *event)
     case Qt::Key_Space:
         if (event->isAutoRepeat() == true)
             return;
-        if (totalstatus == idle) {
+        if (totalstatus == idle && droppingColumn) {
             totalstatus = trybeatdrop;
             TryBeatDrop();
         }
+        break;
+    case Qt::Key_1:
+        grooveLevel++;
+        grooveLevel = grooveLevel >= 10 ? 10 : grooveLevel;
+        break;
+    case Qt::Key_2:
+        grooveLevel--;
+        grooveLevel = grooveLevel <= 0 ? 0 : grooveLevel;
         break;
     }
 }

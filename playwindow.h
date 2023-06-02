@@ -8,7 +8,7 @@
 #include "block.h"
 #include <QSoundEffect>
 
-enum playstatus { idle, normaldrop, trybeatdrop, gameover };
+enum playstatus { idle, normaldrop, trybeatdrop, eliminating, falling, gameover };
 enum movedirection { left, right };
 
 class PlayWindow:public QMainWindow
@@ -25,9 +25,12 @@ class PlayWindow:public QMainWindow
     CountDown cntdwn;
     MusicPlayer music1;
     MusicPlayer music2;
-    MusicPlayer cd1;
-    MusicPlayer cd2;
-    MusicPlayer fail;
+    SoundPlayer cd1;
+    SoundPlayer cd2;
+    SoundPlayer fail;
+    SoundPlayer beatdropsound;
+    SoundPlayer eliminatesound;
+    SoundPlayer shiftsound;
     bool countdowning = false;
     bool started = false;
     playstatus totalstatus = idle;
@@ -36,6 +39,9 @@ class PlayWindow:public QMainWindow
     int loop = 0;
     int totalbeats = 0;
     float downspeed = 0;
+    float beatdropspeed = 0;
+    bool beatdropsuc = false;
+    float beatdroptime = 0;
 
     column *droppingColumn = NULL;
     int droppingColumnX = 3;
@@ -63,6 +69,8 @@ private:
     void NormalDrop();
     void GameOver();
     void TryBeatDrop();
+    void BeatDropFail(float droptime);
+    void BeatDropSuccess(float droptime);
 signals:
     void playWindowUpdate();
 public slots:

@@ -36,8 +36,12 @@ class GrooveBar: public PlayWindowWidget
 {
     Q_OBJECT;
     QFont _Font;
+    long long startflashtime = 0;
+    bool flashing = false;
 public:
     GrooveBar(QWidget *parent = nullptr);
+    void startflash();
+    void finishflash();
 private:
     void Paint();
 signals:
@@ -48,9 +52,12 @@ class RhythmBar: public PlayWindowWidget
 {
     Q_OBJECT;
     int rhythmLevel = 20;
+    bool flashing = false;
+    long long startflashtime = 0;
 public:
     RhythmBar(QWidget *parent = nullptr);
-    void flash();
+    void startflash();
+    void finishflash();
     void upd(long long crrtm);
 private:
     void Paint();

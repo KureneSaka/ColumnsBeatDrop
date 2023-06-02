@@ -125,6 +125,7 @@ GrooveBar::GrooveBar(QWidget *parent)
 }
 void GrooveBar::Paint()
 {
+    bool doFlash = ((ftimer->getCurrentTime() - startflashtime) / 5 + 1) % 2;
     int width = 20;
     int BoardX = (WINDOW_WIDTH - BoardWidth) / 2 - 30 - width;
     drawEdge(BoardX, BoardY, width, BoardHeight);
@@ -135,7 +136,14 @@ void GrooveBar::Paint()
         printer.drawRect(BoardX + 5, BoardY + 14 + 78 * i, 10, 70);
     }
     for (int i = 10 - grooveLevel; i < 10; i++) {
-        printer.setBrush(QBrush(GrooveColor[i]));
+        if (flashing) {
+            if (doFlash)
+                printer.setBrush(QBrush(QColor(240, 240, 240)));
+            else
+                printer.setBrush(QBrush(QColor(240, 0, 0)));
+
+        } else
+            printer.setBrush(QBrush(GrooveColor[i]));
         printer.drawRect(BoardX + 5, BoardY + 14 + 78 * i, 10, 70);
     }
     if (grooveLevel) {
@@ -160,12 +168,22 @@ void GrooveBar::Paint()
                          GrooveRatio[10 - grooveLevel]);
     }
 }
+void GrooveBar::startflash()
+{
+    startflashtime = ftimer->getCurrentTime();
+    flashing = true;
+}
+void GrooveBar::finishflash()
+{
+    flashing = false;
+}
 
 RhythmBar::RhythmBar(QWidget *parent)
     : PlayWindowWidget(parent)
 {}
 void RhythmBar::Paint()
 {
+    bool doFlash = ((ftimer->getCurrentTime() - startflashtime) / 5 + 1) % 2;
     int maxLevel = grooveLevel <= 9 ? grooveLevel : 9;
     int width = 20;
     int BoardX = (WINDOW_WIDTH + BoardWidth) / 2 + 30;
@@ -179,11 +197,17 @@ void RhythmBar::Paint()
     for (int i = 20 - rhythmLevel - 1; i < 20; i++) {
         if (i < 0) {
             continue;
-        } else if (i == 20 - rhythmLevel - 1) {
+        } else if (i == 20 - rhythmLevel - 1 && !flashing) {
             if (i < 10 - maxLevel) {
                 printer.setBrush(QBrush(QColor(120, 0, 0)));
             } else {
                 printer.setBrush(QBrush(QColor(0, 0, 120)));
+            }
+        } else if (flashing) {
+            if (doFlash) {
+                printer.setBrush(QBrush(QColor(240, 240, 240)));
+            } else {
+                printer.setBrush(QBrush(QColor(240, 0, 0)));
             }
         }
         else if (i < 10 - maxLevel) {
@@ -194,12 +218,20 @@ void RhythmBar::Paint()
         printer.drawRect(BoardX + 5, BoardY + 14 + 39 * i, 10, 31);
     }
 }
-void RhythmBar::flash() {}
-void RhythmBar::upd(long long crrtm)
+void RhythmBar::startflash()
+{
+    startflashtime = ftimer->getCurrentTime();
+    flashing = true;
+}
+void RhythmBar::finishflash()
+{
+    flashing = false;
+}
+void RhythmBar::upd(long long crrtm)//realtime
 {
     if (stop)
         return;
-    int during = (crrtm * bpm * 40 / FPS / 60) % 40;
+    int during = (crrtm * bpm * 40 / FPS / 1000) % 40;
     if (during <= 20) {
         rhythmLevel = 20 - during;
     } else {

@@ -1,10 +1,10 @@
 #ifndef MAINMENU_H
 #define MAINMENU_H
+#include "musicplayer.h"
 #include "predefines.h"
 #include <QMainWindow>
 #include <QPainter>
 #include <QKeyEvent>
-#include <QSoundEffect>
 
 namespace C_MainMenu
 {
@@ -24,8 +24,8 @@ class MainMenu : public QMainWindow
     QFont TitleFont;
     long long frameTimeOffset = 0;
     State_w stt = S_Normal;
-    QSoundEffect select;
-    QSoundEffect confirm;
+    SoundPlayer select;
+    SoundPlayer confirm;
 public:
     MainMenu(QWidget *parent = nullptr);
 private:
