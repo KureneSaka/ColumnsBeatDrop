@@ -2,7 +2,7 @@
 #include "frametimer.h"
 #include "predefines.h"
 #include "utils.h"
-#include <random>
+#include <QRandomGenerator>
 
 extern const int SquareWidth = 50;
 const int BoardWidth = BoardColumns * SquareWidth;
@@ -195,11 +195,11 @@ void RhythmBar::Paint()
     }
 }
 void RhythmBar::flash() {}
-void RhythmBar::upd()
+void RhythmBar::upd(long long crrtm)
 {
     if (stop)
         return;
-    int during = ((ftimer->getCurrentTime() - frameTimeOffset) * bpm * 40 / FPS / 60) % 40;
+    int during = (crrtm * bpm * 40 / FPS / 60) % 40;
     if (during <= 20) {
         rhythmLevel = 20 - during;
     } else {
@@ -211,7 +211,6 @@ NextBlockBoard::NextBlockBoard(QWidget *parent)
     : PlayWindowWidget(parent)
 {
     _Font = fontLoader("STENCIL.TTF", 40);
-    srand(ftimer->getCurrentTime());
 }
 NextBlockBoard::~NextBlockBoard()
 {
@@ -240,15 +239,54 @@ void NextBlockBoard::Paint()
         next[i]->move(BoardX + 30 + 90 * i, BoardY0 + 100);
     }
 }
+column *NextBlockBoard::newColumn()
+{
+    int clr[3] = {4, 4, 4};
+    switch (QRandomGenerator::global()->bounded(10)) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 6: {
+        clr[0] = QRandomGenerator::global()->bounded(4);
+        clr[1] = QRandomGenerator::global()->bounded(3);
+        if (clr[1] >= clr[0]) {
+            clr[1]++;
+        }
+        clr[2] = QRandomGenerator::global()->bounded(2);
+        if (clr[2] >= clr[1]) {
+            clr[2]++;
+            if (clr[2] >= clr[0])
+                clr[2]++;
+        } else if (clr[2] >= clr[0]) {
+            clr[2]++;
+            if (clr[2] >= clr[1])
+                clr[2]++;
+        }
+    } break;
+    case 7:
+    case 8: {
+        clr[0] = clr[1] = clr[2] = QRandomGenerator::global()->bounded(4);
+        int num = QRandomGenerator::global()->bounded(3);
+        int cl = QRandomGenerator::global()->bounded(3);
+        if (cl >= clr[0])
+            cl++;
+        clr[num] = cl;
+    } break;
+    case 9:
+        clr[0] = clr[1] = clr[2] = QRandomGenerator::global()->bounded(4);
+        break;
+    }
+    return new column(parentWidget(), blockColor(clr[0]), blockColor(clr[1]), blockColor(clr[2]));
+}
 void NextBlockBoard::initialnew(int cntdwnnum)
 {
     if (initialized)
         return;
     else if (cntdwnnum <= initializeindex) {
-        next[initializeindex] = new column(parentWidget(),
-                                           blockColor(rand() % 4),
-                                           blockColor(rand() % 4),
-                                           blockColor(rand() % 4));
+        next[initializeindex] = newColumn();
         if (initializeindex < 3) {
             next[initializeindex]->show();
         }
@@ -265,10 +303,8 @@ column *NextBlockBoard::popColumn()
         next[i] = next[i + 1];
     }
     next[2]->show();
-    next[3] = new column(parentWidget(),
-                         blockColor(rand() % 4),
-                         blockColor(rand() % 4),
-                         blockColor(rand() % 4));
+
+    next[3] = newColumn();
     return ret;
 }
 

@@ -27,9 +27,11 @@ PlayWindow::PlayWindow(QWidget *parent)
     , music2(this)
     , cd1(this)
     , cd2(this)
+    , fail(this)
 {
     cd1.readSound("countdown.wav");
     cd2.readSound("countdown_f.wav");
+    fail.readSound("fail.wav");
     setWindowModality(Qt::NonModal);
     setFocusPolicy(Qt::NoFocus);
     setWindowFlags(Qt::FramelessWindowHint);
@@ -38,7 +40,6 @@ PlayWindow::PlayWindow(QWidget *parent)
     stt = S_Hidden;
     connect(ftimer, &FrameTimer::frameRefresh, this, [=]() { refresh(); });
 }
-
 PlayWindow::~PlayWindow()
 {
     delete droppingColumn;
@@ -223,13 +224,13 @@ void PlayWindow::refresh()
                             droppingstoptime++;
                         if (droppingstoptime >= beattime * 60 * 2 / 1000) {
                             totalstatus = normaldrop;
-                            ColumnNormalDrop();
+                            NormalDrop();
                             droppingstop = false;
                         }
                     }
                 }
             }
-            rb.upd();
+            rb.upd(currentTime);
         }
     }
 }
@@ -266,7 +267,7 @@ void PlayWindow::UpShiftColumn(bool is_up)
     droppingColumn->exchange(is_up);
 }
 
-void PlayWindow::ColumnNormalDrop()
+void PlayWindow::NormalDrop()
 {
     for (int i = 0; i < 3; i++) {
         if (droppingColumnYint - i - 1 >= 0) {
@@ -284,12 +285,18 @@ void PlayWindow::ColumnNormalDrop()
     totalstatus = idle;
 }
 
+void PlayWindow::TryBeatDrop()
+{
+
+}
+
 void PlayWindow::GameOver()
 {
     totalstatus = gameover;
     music1.stop();
     music2.stop();
     music_on = false;
+    fail.play();
     pb.GameOver();
     rb.GameOver();
     nbb.GameOver();
@@ -303,8 +310,6 @@ void PlayWindow::GameOver()
 
 void PlayWindow::keyPressEvent(QKeyEvent *event)
 {
-    if (event->isAutoRepeat() == true)
-        return;
     if (stt != S_Normal)
         return;
     if (!started)
@@ -312,6 +317,8 @@ void PlayWindow::keyPressEvent(QKeyEvent *event)
     switch (event->key()) {
     case Qt::Key_Down:
     case Qt::Key_S:
+        if (event->isAutoRepeat() == true)
+            return;
         speeduping = true;
         break;
     case Qt::Key_Left:
@@ -324,16 +331,22 @@ void PlayWindow::keyPressEvent(QKeyEvent *event)
         break;
     case Qt::Key_J:
     case Qt::Key_Z:
+        if (event->isAutoRepeat() == true)
+            return;
         UpShiftColumn(false);
         break;
     case Qt::Key_K:
     case Qt::Key_X:
+        if (event->isAutoRepeat() == true)
+            return;
         UpShiftColumn(true);
         break;
     case Qt::Key_Space:
+        if (event->isAutoRepeat() == true)
+            return;
         if (totalstatus == idle) {
-            totalstatus = beating;
-            //beatdrop();
+            totalstatus = trybeatdrop;
+            TryBeatDrop();
         }
         break;
     }

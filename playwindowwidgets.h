@@ -51,7 +51,7 @@ class RhythmBar: public PlayWindowWidget
 public:
     RhythmBar(QWidget *parent = nullptr);
     void flash();
-    void upd();
+    void upd(long long crrtm);
 private:
     void Paint();
 signals:
@@ -72,6 +72,7 @@ public:
     column *popColumn();
 private:
     void Paint();
+    column *newColumn();
 signals:
 public slots:
 };
