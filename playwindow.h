@@ -8,7 +8,7 @@
 #include "block.h"
 #include <QSoundEffect>
 
-enum playstatus { idle, normaldrop, trybeatdrop, eliminating, falling, gameover };
+enum playstatus { idle, normaldrop, trybeatdrop, bdsuccess, eliminating, falling, gameover };
 enum movedirection { left, right };
 
 class PlayWindow:public QMainWindow
@@ -38,10 +38,15 @@ class PlayWindow:public QMainWindow
     int musicLength = 0;
     int loop = 0;
     int totalbeats = 0;
+
     float downspeed = 0;
+    bool speeduping = false;
+
     float beatdropspeed = 0;
     bool beatdropsuc = false;
     float beatdroptime = 0;
+
+
 
     column *droppingColumn = NULL;
     int droppingColumnX = 3;
@@ -50,7 +55,7 @@ class PlayWindow:public QMainWindow
     bool droppingstop = false;
     int droppingstoptime = 0;
 
-    bool speeduping = false;
+    float shapechangetime = 0;
 
     block *board[BoardLines][BoardColumns] = {{nullptr}};
 public:
@@ -66,11 +71,13 @@ private:
     void refresh();
     void MoveColumn(movedirection dr);
     void UpShiftColumn(bool is_up);
-    void NormalDrop();
+    void NormalDrop(bool toEliminate = false);
     void GameOver();
     void TryBeatDrop();
     void BeatDropFail(float droptime);
     void BeatDropSuccess(float droptime);
+    void Eliminate();
+    void Fall();
 signals:
     void playWindowUpdate();
 public slots:

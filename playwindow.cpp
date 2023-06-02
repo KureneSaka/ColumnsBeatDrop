@@ -199,6 +199,11 @@ void PlayWindow::refresh()
                     droppingColumnYint = 1;
                     droppingColumn = nbb.popColumn();
                 }
+                if (totalstatus == bdsuccess) {
+                    shapechangetime = currentTime;
+                    totalstatus = eliminating;
+                    Eliminate();
+                }
             }
             switch (totalstatus) {
             case idle: {
@@ -229,6 +234,7 @@ void PlayWindow::refresh()
                             if (droppingstoptime >= beattime * 60 * 2 / 1000) {
                                 totalstatus = normaldrop;
                                 NormalDrop();
+                                totalstatus = idle;
                                 droppingstop = false;
                             }
                         }
@@ -236,9 +242,6 @@ void PlayWindow::refresh()
                 }
                 rb.upd(currentrealtime);
             } break;
-            case normaldrop:
-                rb.upd(currentrealtime);
-                break;
             case trybeatdrop: {
                 if (droppingColumn) {
                     droppingColumn->setshine(1);
@@ -247,10 +250,11 @@ void PlayWindow::refresh()
                         if (droppingColumnYint == BoardLines
                             || board[droppingColumnYint][droppingColumnX]) {
                             droppingColumnY = droppingColumnYint;
-                            NormalDrop();
                             if (beatdropsuc) {
-                                totalstatus = idle;
+                                NormalDrop(true);
+                                totalstatus = bdsuccess;
                             } else if (!beatdropsuc) {
+                                NormalDrop();
                                 totalstatus = idle;
                             }
                         } else {
@@ -260,7 +264,13 @@ void PlayWindow::refresh()
                 }
                 rb.upd(beatdroptime);
             } break;
+            case bdsuccess:
+                rb.upd(beatdroptime);
+                break;
             case gameover:
+                break;
+            default:
+                rb.upd(currentrealtime);
                 break;
             }
         }
@@ -300,7 +310,7 @@ void PlayWindow::UpShiftColumn(bool is_up)
     droppingColumn->exchange(is_up);
 }
 
-void PlayWindow::NormalDrop()
+void PlayWindow::NormalDrop(bool toEliminate)
 {
     for (int i = 0; i < 3; i++) {
         if (droppingColumnYint - i - 1 >= 0) {
@@ -309,17 +319,21 @@ void PlayWindow::NormalDrop()
             board[droppingColumnYint - i - 1][droppingColumnX]
                 ->move(BoardX0 + droppingColumnX * SquareWidth,
                        BoardY + (droppingColumnYint - i - 1) * SquareWidth);
+            if (toEliminate) {
+                board[droppingColumnYint - i - 1][droppingColumnX]->setEliminate(true);
+            }
             board[droppingColumnYint - i - 1][droppingColumnX]->show();
         }
     }
     column *tmp = droppingColumn;
-    droppingColumn = NULL;
+    droppingColumn = nullptr;
     delete tmp;
     totalstatus = idle;
 }
 
 void PlayWindow::TryBeatDrop()
 {
+    droppingstop = false;
     beatdroptime = ftimer->getRealTime() - realTimeOffset;
     float deltaTime = beatdroptime - (totalbeats - 1) * beattime;
     float beatableTime = beattime / 40 * (10 - (grooveLevel > 9 ? 9 : grooveLevel));
@@ -364,6 +378,68 @@ void PlayWindow::BeatDropFail(float droptime)
         beatdropspeed = (destY - droppingColumnY) / droptime * SquareWidth;
     }
 }
+
+void PlayWindow::Eliminate()
+{
+    /*
+    int groupnum[4] = {1, 1, 1, 1};
+    QMap<int, QPair<QList<block *>, bool>> map[4];
+    for (int i = 0; i < BoardLines; i++) {
+        for (int j = 0; j < BoardColumns; j++) {
+            if (board[i][j]) {
+                blockColor Mclr = board[i][j]->getBlockColor();
+                blockColor Uclr = BNULL;
+                blockColor Lclr = BNULL;
+                int Mgrp = 0;
+                int Ugrp = 0;
+                int Lgrp = 0;
+                if (i > 0 && board[i - 1][j]) {
+                    Uclr = board[i - 1][j]->getBlockColor();
+                    Ugrp = board[i - 1][j]->getEliminateGroup();
+                }
+                if (j > 0 && board[i][j - 1]) {
+                    Lclr = board[i][j - 1]->getBlockColor();
+                    Lgrp = board[i][j - 1]->getEliminateGroup();
+                }
+                if (Mclr != Uclr && Mclr != Lclr) {
+                    map[Mclr].insert(groupnum[Mclr],
+                                     QPair<QList<block *>, bool>(QList<block *>{board[i][j]},
+                                                                 board[i][j]->getEliminate()));
+                    board[i][j]->setEliminateGroup(groupnum[Mclr]);
+                    groupnum[Mclr]++;
+                    continue;
+                }
+                if (Mclr == Uclr && Mclr == Lclr) {
+                    Mgrp = Ugrp;
+                    if (Lgrp == Ugrp) {
+                    }
+                    if (Lgrp != Ugrp) {
+                        map[Mclr][Mgrp].first.append(map[Mclr][Lgrp].first);
+                        for (int i = map[Mclr][Lgrp].first.size() - 1; i >= 0; i--) {
+                            map[Mclr][Lgrp].first[i]->setEliminateGroup(Mgrp);
+                        }
+                        map[Mclr].remove(Lgrp);
+                    }
+                } else if (Mclr == Uclr) {
+                    Mgrp = Ugrp;
+                } else if (Mclr == Lclr) {
+                    Mgrp = Lgrp;
+                }
+                board[i][j]->setEliminateGroup(Mgrp);
+                map[Mclr][Mgrp].first.push_back(board[i][j]);
+                if (board[i][j]->getEliminate()) {
+                    map[Mclr][Mgrp].second = true;
+                }
+            }
+        }
+    }
+    totalstatus = idle;*/
+}
+void PlayWindow::Fall()
+{
+
+}
+
 
 void PlayWindow::GameOver()
 {

@@ -8,9 +8,15 @@ class block : public QWidget
 {
     Q_OBJECT
     blockColor blkclr;
+    bool toEliminate = false;
+    int eliminateGroup = 0;
 public:
     block(QWidget *parent = nullptr, blockColor clr = BNULL);
     blockColor getBlockColor();
+    void setEliminate(bool b);
+    void setEliminateGroup(int i);
+    bool getEliminate();
+    int getEliminateGroup();
 private:
     void paintEvent(QPaintEvent *);
 };

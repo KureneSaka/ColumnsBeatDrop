@@ -82,11 +82,27 @@ void block::paintEvent(QPaintEvent *)
         break;
     }
 }
-
 blockColor block::getBlockColor()
 {
     return blkclr;
 }
+void block::setEliminate(bool b)
+{
+    toEliminate = b;
+}
+bool block::getEliminate()
+{
+    return toEliminate;
+}
+void block::setEliminateGroup(int gr)
+{
+    eliminateGroup = gr;
+}
+int block::getEliminateGroup()
+{
+    return eliminateGroup;
+}
+
 
 column::column(QWidget *parent, blockColor clr1, blockColor clr2, blockColor clr3)
     : QWidget(parent)
