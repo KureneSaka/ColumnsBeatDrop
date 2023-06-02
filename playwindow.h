@@ -5,6 +5,7 @@
 #include "playwindowwidgets.h"
 #include "predefines.h"
 #include "musicplayer.h"
+#include "block.h"
 #include <QSoundEffect>
 
 enum playstatus {
@@ -16,7 +17,7 @@ enum playstatus {
     dropping,
     dropped,
 };
-
+enum direction { left, right, down };
 
 class PlayWindow:public QMainWindow
 {
@@ -41,6 +42,13 @@ class PlayWindow:public QMainWindow
     int musicLength = 0;
     int loop = 0;
     int totalbeats = 0;
+    float downspeed = 0;
+
+    column *droppingColumn = NULL;
+    int droppingColumnX = 3;
+    float droppingColumnY = 0.0;
+    int droppingColumnYint = 0;
+    block *board[BoardLines][BoardColumns] = {{nullptr}};
 public:
     PlayWindow(QWidget *parent = nullptr);
     void Initialize();
@@ -50,6 +58,7 @@ private:
     void shapeChange(State_w _stt);
     void keyPressEvent(QKeyEvent *event);
     void refresh();
+    void MoveColumn(direction dr);
 //    void beatdrop();
 signals:
     void playWindowUpdate();

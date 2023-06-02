@@ -2,13 +2,12 @@
 #include "frametimer.h"
 #include "predefines.h"
 #include "utils.h"
+#include <random>
 
-const int SquareWidth = 50;
-const int BoardColumns = 8;
-const int BoardLines = 16;
+extern const int SquareWidth = 50;
 const int BoardWidth = BoardColumns * SquareWidth;
 const int BoardHeight = BoardLines * SquareWidth;
-const int BoardY = 80;
+extern const int BoardY = 80;
 const int BoardPenWidth = 4;
 extern int grooveLevel;
 extern long long frameTimeOffset;
@@ -104,6 +103,15 @@ void PlayBoard::Paint()
                      BoardY + BoardHeight + BoardPenWidth + shadowWidth / 2,
                      BoardX + BoardWidth + BoardPenWidth + shadowWidth / 2,
                      BoardY + BoardHeight + BoardPenWidth + shadowWidth / 2);
+    painter.setPen(QPen(QColor(30, 15, 15, 255 * showRatio), 8));
+    painter.drawLine(BoardX + SquareWidth * 3 + 10,
+                     BoardY + 10,
+                     BoardX + SquareWidth * 4 - 10,
+                     BoardY + SquareWidth - 10);
+    painter.drawLine(BoardX + SquareWidth * 3 + 10,
+                     BoardY + SquareWidth - 10,
+                     BoardX + SquareWidth * 4 - 10,
+                     BoardY + 10);
 }
 
 GrooveBar::GrooveBar(QWidget *parent)
@@ -197,6 +205,13 @@ NextBlockBoard::NextBlockBoard(QWidget *parent)
     : PlayWindowWidget(parent)
 {
     _Font = fontLoader("STENCIL.TTF", 40);
+    srand(ftimer->getCurrentTime());
+}
+NextBlockBoard::~NextBlockBoard()
+{
+    for (int i = 0; i < 4; i++) {
+        delete next[i];
+    }
 }
 void NextBlockBoard::Paint()
 {
@@ -204,7 +219,51 @@ void NextBlockBoard::Paint()
     int BoardX = (WINDOW_WIDTH + BoardWidth) / 2 + 80;
     int BoardY0 = BoardY;
     drawEdge(BoardX, BoardY0, width, 280);
-
+    QPainter painter(this);
+    painter.setPen(QPen(QColor(240, 240, 120, 255 * showRatio)));
+    painter.setFont(_Font);
+    painter.drawText(BoardX, BoardY0 + 10, width, 50, Qt::AlignCenter, "NEXT");
+    painter.setPen(QPen(QColor(0, 127, 0, 63 * showRatio), 4));
+    painter.drawLine(BoardX + BoardPenWidth / 2,
+                     BoardY0 + 70,
+                     BoardX + width - BoardPenWidth / 2,
+                     BoardY0 + 70);
+    painter.drawLine(BoardX + 100, BoardY0 + 74, BoardX + 100, BoardY0 + 278 - BoardPenWidth / 2);
+    painter.drawLine(BoardX + 190, BoardY0 + 74, BoardX + 190, BoardY0 + 278 - BoardPenWidth / 2);
+    for (int i = 0; i < initializeindex; i++) {
+        next[i]->move(BoardX + 30 + 90 * i, BoardY0 + 100);
+    }
+}
+void NextBlockBoard::initialnew(int cntdwnnum)
+{
+    if (initialized)
+        return;
+    else if (cntdwnnum <= initializeindex) {
+        next[initializeindex] = new column(parentWidget(),
+                                           blockColor(rand() % 4),
+                                           blockColor(rand() % 4),
+                                           blockColor(rand() % 4));
+        if (initializeindex < 3) {
+            next[initializeindex]->show();
+        }
+        if (initializeindex == 3) {
+            initialized = true;
+        }
+        initializeindex++;
+    }
+}
+column *NextBlockBoard::popColumn()
+{
+    column *ret = next[0];
+    for (int i = 0; i < 3; i++) {
+        next[i] = next[i + 1];
+    }
+    next[2]->show();
+    next[3] = new column(parentWidget(),
+                         blockColor(rand() % 4),
+                         blockColor(rand() % 4),
+                         blockColor(rand() % 4));
+    return ret;
 }
 
 ScoreBoard::ScoreBoard(QWidget *parent)

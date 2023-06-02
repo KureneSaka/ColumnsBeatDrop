@@ -9,6 +9,9 @@ long long frameTimeOffset = 0;
 int bpm = 0;
 extern bool music_on;
 double beattime = 0;//in ms
+const int SquareWidth = 50;
+const int BoardY = 80;
+const int BoardX0 = (WINDOW_WIDTH - BoardColumns * SquareWidth) / 2;
 
 PlayWindow::PlayWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -35,7 +38,6 @@ PlayWindow::PlayWindow(QWidget *parent)
     stt = S_Hidden;
     connect(ftimer, &FrameTimer::frameRefresh, this, [=]() { refresh(); });
 }
-
 void PlayWindow::paintEvent(QPaintEvent *)
 {
     if (stt == S_Hidden)
@@ -73,6 +75,10 @@ void PlayWindow::paintEvent(QPaintEvent *)
     brb.setRatio(shapeRatio);
     blb.setRatio(shapeRatio);
     cntdwn.setcntdwn(countdownnum);
+    if (droppingColumn) {
+        droppingColumn->move(BoardX0 + droppingColumnX * SquareWidth,
+                             BoardY + (droppingColumnY - 2) * SquareWidth);
+    }
 }
 
 void PlayWindow::shapeChange(State_w _stt)
@@ -112,7 +118,7 @@ void PlayWindow::Initialize()
     blb.setsong("TECHNOPOLIS 2085", "PRASTIK DANCEFLOOR");
     musicLength = 10746;
     brb.init(4);
-
+    downspeed = 0.5 * bpm / 3600;
 }
 
 void PlayWindow::refresh()
@@ -129,6 +135,7 @@ void PlayWindow::refresh()
                 return;
             currentTime -= 60;
             if (currentTime >= 3600 * countdownnum / bpm) {
+                nbb.initialnew(countdownnum);
                 if (countdownnum <= 2) {
                     cd1.cleanplay();
                 } else if (countdownnum == 3) {
@@ -147,6 +154,7 @@ void PlayWindow::refresh()
             long long currentTime = ftimer->getCurrentTime() - frameTimeOffset;
             long long loopTime = musicLength * (loop+1) * FPS / 1000;
             long long beatsTime = beattime * totalbeats * FPS / 1000;
+            float deltaTime = currentTime * float(bpm) / FPS / 60 + 1 - totalbeats;//0 when just on beat, 1 when next beat
             if (currentTime >= loopTime) {
                 loop++;
                 if (loop % 2 == 0) {
@@ -158,9 +166,46 @@ void PlayWindow::refresh()
             if (currentTime >= beatsTime) {
                 totalbeats++;
                 brb.setbeat(totalbeats);
+                if (droppingColumn == NULL && totalstatus == idle) {
+                    droppingColumnX = 3;
+                    droppingColumnY = 0.0;
+                    droppingColumn = nbb.popColumn();
+                }
+            }
+            droppingColumn->setshine(cos(qDegreesToRadians(deltaTime * 90)));
+            droppingColumnY += downspeed;
+            if (droppingColumnY >= droppingColumnYint) {
+                droppingColumnYint++;
             }
             rb.upd();
         }
+    }
+}
+
+void PlayWindow::MoveColumn(direction dr)
+{
+    if (!droppingColumn && totalstatus != idle) {
+        return;
+    }
+    switch (dr) {
+    case left:
+        if (board[droppingColumnX - 1][droppingColumnYint]) {
+            return;
+        } else {
+            droppingColumnX--;
+            droppingColumnX = droppingColumnX >= 0 ? droppingColumnX : 0;
+        }
+        break;
+    case right:
+        if (board[droppingColumnX + 1][droppingColumnYint]) {
+            return;
+        } else {
+            droppingColumnX++;
+            droppingColumnX = droppingColumnX < BoardColumns ? droppingColumnX : BoardColumns - 1;
+        }
+        break;
+    case down:
+        break;
     }
 }
 
@@ -173,9 +218,14 @@ void PlayWindow::keyPressEvent(QKeyEvent *event)
     if (!started)
         return;
     switch (event->key()) {
-    case Qt::Key_W:
-        break;
     case Qt::Key_S:
+        MoveColumn(down);
+        break;
+    case Qt::Key_A:
+        MoveColumn(left);
+        break;
+    case Qt::Key_D:
+        MoveColumn(right);
         break;
     case Qt::Key_J:
         break;
@@ -186,10 +236,8 @@ void PlayWindow::keyPressEvent(QKeyEvent *event)
         }
         break;
     case Qt::Key_Up:
-        grooveLevel++;
         break;
     case Qt::Key_Down:
-        grooveLevel--;
         break;
     case Qt::Key_Return:
         break;

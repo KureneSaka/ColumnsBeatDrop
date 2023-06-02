@@ -3,6 +3,7 @@
 #include <QWidget>
 #include <QPainter>
 #include <QFont>
+#include "block.h"
 
 class PlayWindowWidget: public QWidget
 {
@@ -58,9 +59,15 @@ public slots:
 class NextBlockBoard: public PlayWindowWidget
 {
     Q_OBJECT;
+    bool initialized = false;
     QFont _Font;
+    int initializeindex = 0;
+    column *next[4] = {NULL};
 public:
     NextBlockBoard(QWidget *parent = nullptr);
+    ~NextBlockBoard();
+    void initialnew(int cntdwnnum);
+    column *popColumn();
 private:
     void Paint();
 signals:
