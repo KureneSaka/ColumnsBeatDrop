@@ -381,7 +381,6 @@ void PlayWindow::BeatDropFail(float droptime)
 
 void PlayWindow::Eliminate()
 {
-    /*
     int groupnum[4] = {1, 1, 1, 1};
     QMap<int, QPair<QList<block *>, bool>> map[4];
     for (int i = 0; i < BoardLines; i++) {
@@ -433,7 +432,37 @@ void PlayWindow::Eliminate()
             }
         }
     }
-    totalstatus = idle;*/
+    QString a = "";
+    for (int i = 0; i < BoardLines; i++) {
+        for (int j = 0; j < BoardColumns; j++) {
+            if (board[i][j]) {
+                switch (board[i][j]->getBlockColor()) {
+                case Bred:
+                    a += 'r';
+                    break;
+                case Bgreen:
+                    a += 'g';
+                    break;
+                case Bblue:
+                    a += 'b';
+                    break;
+                case Byellow:
+                    a += 'y';
+                    break;
+                case BNULL:
+                    break;
+                }
+                a += std::to_string(board[i][j]->getEliminateGroup());
+            } else {
+                a += "n0";
+            }
+            a += ' ';
+        }
+        qDebug() << a;
+        a = "";
+    }
+    qDebug() << "================";
+    totalstatus = idle;
 }
 void PlayWindow::Fall()
 {

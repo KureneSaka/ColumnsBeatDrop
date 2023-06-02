@@ -27,7 +27,6 @@ class column : public QWidget
     block blocks[3];
     float edgeshine = 0;
     int exchangeind = 0;
-
 public:
     column(QWidget *parent = nullptr,
            blockColor clr1 = BNULL,
