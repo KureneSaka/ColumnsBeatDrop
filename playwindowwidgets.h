@@ -89,10 +89,22 @@ public slots:
 class ScoreBoard: public PlayWindowWidget
 {
     Q_OBJECT;
+    QFont TitleFont;
     QFont WordFont;
+    QFont smallFont;
     QFont DigitFont;
+    long long bestdrop = 0;
+    long long totalscore = 0;
+    bool eliminating = false;
+    int chain = 0;
+    int groove = 0;
+    int blocknum = 0;
+    int addscore = 0;
+    long long currentdrop = 0;
 public:
     ScoreBoard(QWidget *parent = nullptr);
+    void eliminate(int blknm);
+    void clearCurrent();
 private:
     void Paint();
 signals:

@@ -65,7 +65,7 @@ void block::paintEvent(QPaintEvent *)
         ts.scale(sprt, sprt);
         painter.setTransform(ts);
     } else if (toEliminate) {
-        painter.setPen(QPen(QColor(50, 50, 50, 255 * sprt), 2, Qt::DashLine));
+        painter.setPen(QPen(QColor(100, 100, 100, 255 * sprt), 2, Qt::DashLine));
         painter.drawRect(1, 1, SquareWidth - 2, SquareWidth - 2);
     }
     switch (blkclr) {

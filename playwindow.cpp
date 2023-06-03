@@ -216,6 +216,7 @@ void PlayWindow::refresh()
                 totalbeats++;
                 brb.setbeat(totalbeats);
                 if (totalstatus == bdsuccess || totalstatus == to_eliminate) {
+                    sb.eliminate(eliminatecount);
                     rb.finishflash();
                     gb.finishflash();
                     shapechangeratio = 1;
@@ -401,6 +402,7 @@ void PlayWindow::NormalDrop(bool toEliminate)
 
 void PlayWindow::TryBeatDrop()
 {
+    sb.clearCurrent();
     rb.setgrlvl(grooveLevel);
     droppingstop = false;
     beatdroptime = ftimer->getRealTime() - realTimeOffset;
@@ -508,7 +510,7 @@ void PlayWindow::Eliminate()
             }
         }
     }
-    int eliminatecount = 0;
+    eliminatecount = 0;
     for (int i = 0; i < 4; i++) {
         for (QMap<int, QPair<QList<block *>, bool>>::Iterator it = map[i].begin();
              it != map[i].end();

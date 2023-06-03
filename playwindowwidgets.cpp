@@ -24,8 +24,9 @@ QColor GrooveColor[10] = {QColor(240, 0, 0),
                           QColor(0, 240, 240),
                           QColor(0, 200, 240),
                           QColor(0, 160, 240)};
-QString GrooveRatio[10]
+QString RatioString[10]
     = {"20.0X", "10.0X", "6.00X", "4.00X", "3.20X", "2.40X", "2.00X", "1.60X", "1.25X", "1.00X"};
+float Ratio[10] = {20.0, 10.0, 6.00, 4.00, 3.20, 2.40, 2.00, 1.60, 1.25, 1.00};
 
 PlayWindowWidget::PlayWindowWidget(QWidget *parent)
     : QWidget(parent)
@@ -156,7 +157,7 @@ void GrooveBar::Paint()
                                  100,
                                  58,
                                  Qt::AlignCenter,
-                                 GrooveRatio[10 - grooveLevel]);
+                                 RatioString[10 - grooveLevel]);
             }
         }
         printer.setPen(QPen(GrooveColor[10 - grooveLevel]));
@@ -165,7 +166,7 @@ void GrooveBar::Paint()
                          100,
                          58,
                          Qt::AlignCenter,
-                         GrooveRatio[10 - grooveLevel]);
+                         RatioString[10 - grooveLevel]);
     }
 }
 void GrooveBar::startflash()
@@ -188,6 +189,10 @@ void RhythmBar::Paint()
     int width = 20;
     int BoardX = (WINDOW_WIDTH + BoardWidth) / 2 + 30;
     drawEdge(BoardX, BoardY, width, BoardHeight);
+    if (flashing) {
+        if (rhythmLevel <= 10 + maxLevel)
+            rhythmLevel = 11 + maxLevel;
+    }
     QPainter printer(this);
     printer.setPen(QPen(Qt::transparent));
     printer.setBrush(QBrush(QColor(127, 127, 127, 127 * showRatio)));
@@ -348,8 +353,10 @@ column *NextBlockBoard::popColumn()
 ScoreBoard::ScoreBoard(QWidget *parent)
     : PlayWindowWidget(parent)
 {
-    WordFont = fontLoader("STENCIL.TTF", 40);
-    DigitFont = fontLoader("Digital-Readout.ttf", 40);
+    TitleFont = fontLoader("STENCIL.TTF", 40);
+    WordFont = fontLoader("UDDigiKyokashoN-R.ttc", 25);
+    DigitFont = fontLoader("Digital-Readout.ttf", 45);
+    smallFont = fontLoader("UDDigiKyokashoN-R.ttc", 12);
 }
 void ScoreBoard::Paint()
 {
@@ -357,6 +364,163 @@ void ScoreBoard::Paint()
     int BoardX = (WINDOW_WIDTH - BoardWidth) / 2 - 80 - width;
     int BoardY0 = BoardY;
     drawEdge(BoardX, BoardY0, width, 385);
+    QPainter painter(this);
+    painter.setPen(QPen(QColor(240, 240, 120, 255 * showRatio)));
+    painter.setFont(TitleFont);
+    painter.drawText(BoardX, BoardY0 + 10, width, 50, Qt::AlignCenter, "SCOREBOARD");
+    painter.setFont(WordFont);
+    painter.drawText(BoardX, BoardY0 + 55, width, 30, Qt::AlignCenter, "Best Drop");
+    painter.drawText(BoardX, BoardY0 + 115, width, 30, Qt::AlignCenter, "Current Drop");
+    painter.drawText(BoardX, BoardY0 + 310, width, 30, Qt::AlignCenter, "Total Score");
+    painter.setFont(smallFont);
+    painter.drawText(BoardX,
+                     BoardY0 + 145,
+                     width - 145,
+                     30,
+                     Qt::AlignRight | Qt::AlignVCenter,
+                     "Groove Ratio");
+    painter.drawText(BoardX,
+                     BoardY0 + 145,
+                     width - 25,
+                     30,
+                     Qt::AlignRight | Qt::AlignVCenter,
+                     "Chain Ratio");
+    painter.drawText(BoardX,
+                     BoardY0 + 200,
+                     width - 145,
+                     30,
+                     Qt::AlignRight | Qt::AlignVCenter,
+                     "Block Count");
+    painter.drawText(BoardX,
+                     BoardY0 + 200,
+                     width - 25,
+                     30,
+                     Qt::AlignRight | Qt::AlignVCenter,
+                     "Add Score");
+    painter.drawText(BoardX,
+                     BoardY0 + 255,
+                     width - 25,
+                     30,
+                     Qt::AlignRight | Qt::AlignVCenter,
+                     "Drop Score");
+    painter.setFont(DigitFont);
+    painter.setPen(QPen(QColor(31, 31, 31, 255 * showRatio)));
+    painter.drawText(BoardX,
+                     BoardY0 + 75,
+                     width - 20,
+                     50,
+                     Qt::AlignRight | Qt::AlignVCenter,
+                     "888888888888");
+    painter.drawText(BoardX,
+                     BoardY0 + 160,
+                     width - 145,
+                     50,
+                     Qt::AlignRight | Qt::AlignVCenter,
+                     "88.88x");
+    painter.drawText(BoardX,
+                     BoardY0 + 160,
+                     width - 25,
+                     50,
+                     Qt::AlignRight | Qt::AlignVCenter,
+                     "88.88x");
+    painter.drawText(BoardX,
+                     BoardY0 + 215,
+                     width - 145,
+                     50,
+                     Qt::AlignRight | Qt::AlignVCenter,
+                     "888=");
+    painter.drawText(BoardX,
+                     BoardY0 + 215,
+                     width - 25,
+                     50,
+                     Qt::AlignRight | Qt::AlignVCenter,
+                     "88888");
+    painter.drawText(BoardX,
+                     BoardY0 + 270,
+                     width - 20,
+                     50,
+                     Qt::AlignRight | Qt::AlignVCenter,
+                     "888888888888");
+    painter.drawText(BoardX,
+                     BoardY0 + 330,
+                     width - 20,
+                     50,
+                     Qt::AlignRight | Qt::AlignVCenter,
+                     "888888888888");
+
+    painter.setPen(QPen(QColor(120, 240, 120, 255 * showRatio)));
+    QString bstdrp = "";
+    bstdrp += std::to_string(bestdrop);
+    painter.drawText(BoardX, BoardY0 + 75, width - 20, 50, Qt::AlignRight | Qt::AlignVCenter, bstdrp);
+    if (eliminating) {
+        painter.setPen(QPen(GrooveColor[10 - groove]));
+        painter.drawText(BoardX,
+                         BoardY0 + 160,
+                         width - 145,
+                         50,
+                         Qt::AlignRight | Qt::AlignVCenter,
+                         RatioString[10 - groove]);
+        painter.setPen(QPen(GrooveColor[10 - chain]));
+        painter.drawText(BoardX,
+                         BoardY0 + 160,
+                         width - 25,
+                         50,
+                         Qt::AlignRight | Qt::AlignVCenter,
+                         RatioString[10 - chain]);
+        painter.setPen(QPen(QColor(120, 240, 120, 255 * showRatio)));
+        QString blknm = "";
+        blknm += std::to_string(blocknum);
+        blknm += "=";
+        painter.drawText(BoardX,
+                         BoardY0 + 215,
+                         width - 145,
+                         50,
+                         Qt::AlignRight | Qt::AlignVCenter,
+                         blknm);
+        QString adscr = "";
+        adscr += std::to_string(addscore);
+        painter.drawText(BoardX,
+                         BoardY0 + 215,
+                         width - 25,
+                         50,
+                         Qt::AlignRight | Qt::AlignVCenter,
+                         adscr);
+        QString crrntdrp = "";
+        crrntdrp += std::to_string(currentdrop);
+        painter.drawText(BoardX,
+                         BoardY0 + 270,
+                         width - 20,
+                         50,
+                         Qt::AlignRight | Qt::AlignVCenter,
+                         crrntdrp);
+    }
+    QString ttldrp = "";
+    ttldrp += std::to_string(totalscore);
+    painter
+        .drawText(BoardX, BoardY0 + 330, width - 20, 50, Qt::AlignRight | Qt::AlignVCenter, ttldrp);
+}
+void ScoreBoard::eliminate(int blknm)
+{
+    eliminating = true;
+    blocknum = blknm;
+    groove = grooveLevel;
+    if (chain < 9) {
+        chain++;
+    }
+    addscore = blocknum * Ratio[10-chain] * Ratio[10-groove];
+    currentdrop += addscore;
+    if (bestdrop < currentdrop) {
+        bestdrop = currentdrop;
+    }
+    totalscore += addscore;
+}
+void ScoreBoard::clearCurrent()
+{
+    eliminating = false;
+    chain = 0;
+    blocknum = 0;
+    addscore = 0;
+    currentdrop = 0;
 }
 
 BottomRightBoard::BottomRightBoard(QWidget *parent)

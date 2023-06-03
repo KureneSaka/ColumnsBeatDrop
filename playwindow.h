@@ -66,6 +66,7 @@ class PlayWindow:public QMainWindow
     int droppingColumnYint = 1;
     bool droppingstop = false;
     int droppingstoptime = 0;
+    int eliminatecount = 0;
 
     int falllines[BoardLines][BoardColumns] = {{0}};
 
