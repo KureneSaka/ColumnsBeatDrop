@@ -54,11 +54,13 @@ class RhythmBar: public PlayWindowWidget
     int rhythmLevel = 20;
     bool flashing = false;
     long long startflashtime = 0;
+    int grlvl = 0;
 public:
     RhythmBar(QWidget *parent = nullptr);
     void startflash();
     void finishflash();
     void upd(long long crrtm);
+    void setgrlvl(int lvl);
 private:
     void Paint();
 signals:

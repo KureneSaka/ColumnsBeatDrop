@@ -9,13 +9,16 @@ class block : public QWidget
     Q_OBJECT
     blockColor blkclr;
     bool toEliminate = false;
+    bool Eliminating = false;
     int eliminateGroup = 0;
 public:
     block(QWidget *parent = nullptr, blockColor clr = BNULL);
     blockColor getBlockColor();
-    void setEliminate(bool b);
+    void setToEliminate(bool b);
+    void setEliminating(bool b);
     void setEliminateGroup(int i);
-    bool getEliminate();
+    bool getToEliminate();
+    bool getEliminating();
     int getEliminateGroup();
 private:
     void paintEvent(QPaintEvent *);

@@ -184,7 +184,7 @@ RhythmBar::RhythmBar(QWidget *parent)
 void RhythmBar::Paint()
 {
     bool doFlash = ((ftimer->getCurrentTime() - startflashtime) / 5 + 1) % 2;
-    int maxLevel = grooveLevel <= 9 ? grooveLevel : 9;
+    int maxLevel = grlvl <= 9 ? grlvl : 9;
     int width = 20;
     int BoardX = (WINDOW_WIDTH + BoardWidth) / 2 + 30;
     drawEdge(BoardX, BoardY, width, BoardHeight);
@@ -231,6 +231,8 @@ void RhythmBar::upd(long long crrtm)//realtime
 {
     if (stop)
         return;
+    if (flashing)
+        return;
     int during = (crrtm * bpm * 40 / FPS / 1000) % 40;
     if (during <= 20) {
         rhythmLevel = 20 - during;
@@ -238,7 +240,10 @@ void RhythmBar::upd(long long crrtm)//realtime
         rhythmLevel = during - 20;
     }
 }
-
+void RhythmBar::setgrlvl(int lvl)
+{
+    grlvl = lvl;
+}
 NextBlockBoard::NextBlockBoard(QWidget *parent)
     : PlayWindowWidget(parent)
 {

@@ -2,6 +2,7 @@
 #include <QPainter>
 
 const int SquareWidth = 50;
+extern float shapechangeratio;
 int squaremid = SquareWidth / 2;
 QPolygon plgn[8] //0 1 red, 2 3 green, 4 blue, 5 yellow
     {QList<QPoint>{QPoint(squaremid - 20, squaremid),
@@ -54,24 +55,37 @@ void block::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, true);
+    float sprt = 1.0;
+    if (Eliminating) {
+        sprt = shapechangeratio;
+        painter.setPen(QPen(QColor(200, 200, 200, 255 * sprt), 2));
+        painter.drawRect(1, 1, SquareWidth - 2, SquareWidth - 2);
+        QTransform ts;
+        ts.translate(SquareWidth * (1 - sprt) / 2, SquareWidth * (1 - sprt) / 2);
+        ts.scale(sprt, sprt);
+        painter.setTransform(ts);
+    } else if (toEliminate) {
+        painter.setPen(QPen(QColor(50, 50, 50, 255 * sprt), 2, Qt::DashLine));
+        painter.drawRect(1, 1, SquareWidth - 2, SquareWidth - 2);
+    }
     switch (blkclr) {
     case Bred:
-        painter.setPen(QPen(QColor(240, 60, 60), 3));
+        painter.setPen(QPen(QColor(240, 60, 60, 255 * sprt), 3));
         painter.drawPolygon(plgn[0]);
         painter.drawPolygon(plgn[1]);
         break;
     case Bgreen:
-        painter.setPen(QPen(QColor(60, 240, 60), 3));
+        painter.setPen(QPen(QColor(60, 240, 60, 255 * sprt), 3));
         painter.drawPolygon(plgn[2]);
         painter.drawPolygon(plgn[3]);
         break;
     case Bblue:
-        painter.setPen(QPen(QColor(60, 60, 240), 3));
+        painter.setPen(QPen(QColor(60, 60, 240, 255 * sprt), 3));
         painter.drawPolygon(plgn[4]);
         painter.drawPolygon(plgn[5]);
         break;
     case Byellow:
-        painter.setPen(QPen(QColor(240, 240, 60), 3));
+        painter.setPen(QPen(QColor(240, 240, 60, 255 * sprt), 3));
         painter.drawPolygon(plgn[6]);
         painter.drawPolygon(plgn[7]);
         break;
@@ -86,18 +100,27 @@ blockColor block::getBlockColor()
 {
     return blkclr;
 }
-void block::setEliminate(bool b)
+void block::setToEliminate(bool b)
 {
     toEliminate = b;
 }
-bool block::getEliminate()
+bool block::getToEliminate()
 {
     return toEliminate;
+}
+void block::setEliminating(bool b)
+{
+    Eliminating = b;
+}
+bool block::getEliminating()
+{
+    return Eliminating;
 }
 void block::setEliminateGroup(int gr)
 {
     eliminateGroup = gr;
 }
+
 int block::getEliminateGroup()
 {
     return eliminateGroup;
