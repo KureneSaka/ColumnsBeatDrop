@@ -3,6 +3,9 @@
 #include "utils.h"
 #include <QAudioDevice>
 #include <QMediaDevices>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonArray>
 
 extern FrameTimer *ftimer;
 int selectedMusic = -1;
@@ -11,22 +14,39 @@ PlayMenu::PlayMenu(QWidget *parent)
     , select(this)
     , confirm(this)
 {
-    select.setAudioDevice(QMediaDevices::defaultAudioOutput());
-    confirm.setAudioDevice(QMediaDevices::defaultAudioOutput());
-    select.setSource(QUrl::fromLocalFile("./res/sounds/select.wav"));
-    confirm.setSource(QUrl::fromLocalFile("./res/sounds/confirm.wav"));
+    QFile file("./res/music.json");
+    file.open(QIODevice::ReadOnly);
+    QByteArray data(file.readAll());
+    file.close();
+    QJsonParseError jerr;
+    QJsonDocument jdoc = QJsonDocument::fromJson(data, &jerr);
+    musiclist = jdoc.object();
+    totalmusicnum = musiclist["musiclist"].toArray().size();
+    coverlist = new QImage[totalmusicnum];
+    for (int i = 0; i < totalmusicnum; i++) {
+        coverlist[i].load("./res/pics/" + musiclist["musiclist"][i]["name"].toString() + ".png");
+    }
+
+    select.readSound("select.wav");
+    confirm.readSound("confirm.wav");
+
     setWindowModality(Qt::ApplicationModal);
     setWindowFlags(Qt::FramelessWindowHint);
     move(0, 0);
     resize(WINDOW_WIDTH, WINDOW_HEIGHT);
-    MenuFont = fontLoader("RationalInteger.ttf", 40);
-    ContentFont = fontLoader("UDDigiKyokashoN-R.ttc", 40);
+    MenuFont = fontLoader("STENCIL.TTF", 40);
+    ContentFont1 = fontLoader("UDDigiKyokashoN-R.ttc", 40);
+    ContentFont2 = fontLoader("UDDigiKyokashoN-R.ttc", 25);
     setFocusPolicy(Qt::StrongFocus);
     connect(ftimer, &FrameTimer::frameRefresh, this, [=]() {
         if (stt != S_Hidden)
             update();
     });
     shapeChange(S_Expanding);
+}
+PlayMenu::~PlayMenu()
+{
+    delete[] coverlist;
 }
 
 void PlayMenu::paintEvent(QPaintEvent *)
@@ -83,12 +103,60 @@ void PlayMenu::paintEvent(QPaintEvent *)
     }
     if (stt == S_Normal) {
         painter.setBrush(QBrush(Qt::transparent));
-        painter.setPen(QPen(Qt::white));
+        painter.setPen(QPen(QColor(240, 240, 120)));
         painter.setFont(MenuFont);
-        painter.drawText(MIDDLE_WIDTH - 100, WINDOW_HEIGHT - 150, 200, 50, Qt::AlignCenter, "O K");
+        painter.drawText(100, 100, WINDOW_WIDTH - 200, 50, Qt::AlignCenter, "SELECT MUSIC");
+
         float brightness = 40 + 200 * abs(sin(qDegreesToRadians(frametime * 5)));
         painter.setPen(QPen(QColor(brightness, brightness, brightness), 3));
-        painter.drawRect(MIDDLE_WIDTH - 100, WINDOW_HEIGHT - 150, 200, 50);
+        painter.drawRect(100, 200 + cursor * 170, WINDOW_WIDTH - 200, 150);
+
+
+        for (int i = 0; i < totalmusicnum; i++) {
+            QTransform tsfm;
+            painter.setTransform(tsfm);
+            painter.setPen(QPen(QColor(240, 240, 120)));
+            painter.setFont(ContentFont1);
+            painter.drawText(290,
+                             200 + i * 170,
+                             WINDOW_WIDTH - 200,
+                             100,
+                             Qt::AlignLeft | Qt::AlignVCenter,
+                             musiclist["musiclist"][i]["name"].toString());
+            painter.setPen(QPen(QColor(120, 120, 60)));
+            painter.setFont(ContentFont2);
+            painter.drawText(290,
+                             265 + i * 170,
+                             WINDOW_WIDTH - 200,
+                             60,
+                             Qt::AlignLeft | Qt::AlignVCenter,
+                             musiclist["musiclist"][i]["artist"].toString());
+
+            QString str = "";
+            str += "   BPM  ";
+            str += std::to_string(musiclist["musiclist"][i]["bpm"].toInt());
+            int tm = musiclist["musiclist"][i]["length"].toInt();
+            str += "\nLENGTH  ";
+            str += std::to_string(tm / 60000);
+            str += ":";
+            if (tm % 60000 / 10000 == 0) {
+                str += "0";
+            }
+            str += std::to_string(tm % 60000 / 1000);
+
+            painter.drawText(800,
+                             200 + i * 170,
+                             WINDOW_WIDTH - 200,
+                             150,
+                             Qt::AlignLeft | Qt::AlignVCenter,
+                             str);
+
+
+            tsfm.translate(100 + 30, 200 + i * 170+10);
+            tsfm.scale(130.0 / coverlist[i].width(), 130.0 / coverlist[i].width());
+            painter.setTransform(tsfm);
+            painter.drawImage(0, 0, coverlist[i]);
+        }
     }
 }
 void PlayMenu::keyPressEvent(QKeyEvent *event)
@@ -100,12 +168,14 @@ void PlayMenu::keyPressEvent(QKeyEvent *event)
     switch (event->key()) {
     case Qt::Key_W:
     case Qt::Key_Up:
-        switch (cursor) {}
+        cursor--;
+        cursor = cursor < 0 ? totalmusicnum - 1 : cursor;
         select.play();
         break;
     case Qt::Key_S:
     case Qt::Key_Down:
-        switch (cursor) {}
+        cursor++;
+        cursor = cursor >= totalmusicnum ? 0 : cursor;
         select.play();
         break;
     case Qt::Key_J:
@@ -141,3 +211,7 @@ void PlayMenu::shapeChange(State_w _stt)
     }
 }
 
+int PlayMenu::getMusicIndex()
+{
+    return cursor;
+}

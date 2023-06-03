@@ -1,5 +1,8 @@
 #include "playwindow.h"
 #include "frametimer.h"
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 extern FrameTimer *ftimer;
 extern int selectedMusic;
@@ -30,16 +33,14 @@ PlayWindow::PlayWindow(QWidget *parent)
     , cd2(this)
     , fail(this)
     , beatdropsound(this)
-    , eliminatesound1(this)
-    , eliminatesound2(this)
+    , eliminatesound(this)
     , shiftsound(this)
 {
     cd1.readSound("countdown.wav");
     cd2.readSound("countdown_f.wav");
     fail.readSound("fail.wav");
     beatdropsound.readSound("beatdrop.wav");
-    eliminatesound1.readSound("eliminate1.wav");
-    eliminatesound2.readSound("eliminate2.wav");
+    eliminatesound.readSound("eliminate.wav");
     shiftsound.readSound("shift.wav");
     setWindowModality(Qt::NonModal);
     setFocusPolicy(Qt::NoFocus);
@@ -141,20 +142,28 @@ void PlayWindow::shapeChange(State_w _stt)
     }
 }
 
-void PlayWindow::Initialize()
+void PlayWindow::Initialize(int index)
 {
     shapeChange(S_Expanding);
-    QString musicname = "TECHNOPOLIS 2085.mp3";
-    music1.readMusic(musicname);
-    music2.readMusic(musicname);
 
-    bpm = 134;
+    QFile file("./res/music.json");
+    file.open(QIODevice::ReadOnly);
+    QByteArray data(file.readAll());
+    file.close();
+    QJsonParseError jerr;
+    QJsonDocument jdoc = QJsonDocument::fromJson(data, &jerr);
+    QJsonObject musiclist = jdoc.object();
+
+    QString musicname = musiclist["musiclist"][index]["name"].toString();
+    bpm = musiclist["musiclist"][index]["bpm"].toInt();
+    musicLength = musiclist["musiclist"][index]["length"].toInt();
+    beatsperbar = musiclist["musiclist"][index]["bpb"].toInt();
+    blb.loadcover(musicname + ".png");
+    blb.setsong(musicname, musiclist["musiclist"][index]["artist"].toString());
+
+    music1.readMusic(musicname + ".mp3");
+    music2.readMusic(musicname + ".mp3");
     beattime = double(60000) / bpm;
-    musicLength = 130746;
-    blb.loadcover("TECHNOPOLIS 2085.png");
-    blb.setsong("TECHNOPOLIS 2085", "PRASTIK DANCEFLOOR");
-   // musicLength = 10746;
-    beatsperbar = 4;
     brb.init(beatsperbar);
     downspeed = 0.5 * bpm / 3600;
     if (bpm < 90)
@@ -221,11 +230,7 @@ void PlayWindow::refresh()
                     gb.finishflash();
                     shapechangeratio = 1;
                     totalstatus = eliminating;
-                    if ((totalbeats - 1) % beatsperbar) {
-                        eliminatesound2.play();
-                    } else {
-                        eliminatesound1.play();
-                    }
+                    eliminatesound.play();
                 }
                 if (totalstatus == bdfinishing) {
                     shapechangeratio = 1;
@@ -554,39 +559,6 @@ void PlayWindow::Eliminate()
     } else {
         totalstatus = bdfinishing;
     }
-   QString a = "";
-    for (int i = 0; i < BoardLines; i++) {
-        for (int j = 0; j < BoardColumns; j++) {
-
-            if (board[i][j]) {
-                switch (board[i][j]->getBlockColor()) {
-                case Bred:
-                    a += 'r';
-                    break;
-                case Bgreen:
-                    a += 'g';
-                    break;
-                case Bblue:
-                    a += 'b';
-                    break;
-                case Byellow:
-                    a += 'y';
-                    break;
-                case BNULL:
-                    break;
-                }
-                a += std::to_string(board[i][j]->getEliminateGroup());
-                a += std::to_string(board[i][j]->getEliminating());
-            } else {
-                a += "n0n";
-            }
-            a += ' ' + std::to_string(falllines[i][j]);
-        }
-        qDebug() << a;
-        a = "";
-    }
-    qDebug() << "================";
-    //totalstatus = idle;
 }
 void PlayWindow::Erase()
 {

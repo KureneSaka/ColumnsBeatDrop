@@ -1,0 +1,32 @@
+{
+    "musiclist": [
+        {
+            "name": "TECHNOPOLIS 2085",
+            "bpm": 134,
+            "length": 130476,
+            "bpb": 4,
+            "artist": "PRASTIK DANCEFLOOR"
+        },
+        {
+            "name": "See The Light",
+            "bpm": 150,
+            "length": 78400,
+            "bpb": 4,
+            "artist": "anubasu-anubasu"
+        },
+        {
+            "name": "Jörqer",
+            "bpm": 98,
+            "length": 127347,
+            "bpb": 4,
+            "artist": "owl*tree feat.yu*tree"
+        },
+        {
+            "name": "Our Wrenally",
+            "bpm": 105,
+            "length": 91429,
+            "bpb": 4,
+            "artist": "t+pazolite"
+        }
+    ]
+}

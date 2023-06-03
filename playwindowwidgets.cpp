@@ -651,7 +651,12 @@ void BottomLeftBoard::Paint()
     painter.setFont(TitleFont);
     painter.drawText(BoardX, BoardY0 + 10, width, 50, Qt::AlignCenter, "MUSIC");
     painter.setFont(ContentFont);
-    painter.drawText(BoardX, BoardY0 + 280, width, 100, Qt::AlignCenter, "Name\n"+songname + "\nArtist\n" + songartist);
+    painter.drawText(BoardX,
+                     BoardY0 + 280,
+                     width,
+                     100,
+                     Qt::AlignCenter,
+                     "Name\n" + songname + "\nArtist\n" + songartist);
     QTransform tsfm;
     tsfm.translate(BoardX + 40, BoardY0 + 70);
     tsfm.scale(200.0 / cover.width(), 200.0 / cover.width());

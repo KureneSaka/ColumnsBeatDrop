@@ -38,8 +38,7 @@ class PlayWindow:public QMainWindow
     SoundPlayer cd2;
     SoundPlayer fail;
     SoundPlayer beatdropsound;
-    SoundPlayer eliminatesound1;
-    SoundPlayer eliminatesound2;
+    SoundPlayer eliminatesound;
     SoundPlayer shiftsound;
     bool countdowning = false;
     bool started = false;
@@ -74,7 +73,7 @@ class PlayWindow:public QMainWindow
 public:
     PlayWindow(QWidget *parent = nullptr);
     ~PlayWindow();
-    void Initialize();
+    void Initialize(int index);
     void setMusic(QString name);
 private:
     void paintEvent(QPaintEvent *);
